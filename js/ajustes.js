@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (importedCount > 0) {
-            StorageService.saveProducts(currentProducts); // Esto dispara farmapp_data_changed
+            StorageService.saveProducts(currentProducts, true); // True silencia el 'farmapp_data_changed' para no chocar
             AppUtil.showToast(`Se importaron / actualizaron ${importedCount} productos. Subiendo a GitHub...`, 'success');
             
             // Forzar una sincronización visible para que el usuario no cierre la web y vea que termina

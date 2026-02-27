@@ -1,4 +1,5 @@
 const SyncService = {
+    isSyncing: false,
     // ---- GitHub Gist API Wrappers ----
 
     async createGist(token) {
@@ -140,6 +141,9 @@ const SyncService = {
         const sellerEmail = localStorage.getItem('farmapp_seller_email');
         if(!sellerEmail) return {success: false, error: 'Inicia sesión primero.'};
 
+        if (this.isSyncing) return { success: false, error: 'Ya hay una sincronización en curso. Espera unos segundos.' };
+        this.isSyncing = true;
+
         try {
             let cloudData = null;
             try {
@@ -183,6 +187,8 @@ const SyncService = {
 
         } catch (e) {
             return { success: false, error: e.message || 'Error de Sincronización Desconocido' };
+        } finally {
+            this.isSyncing = false;
         }
     }
 };
