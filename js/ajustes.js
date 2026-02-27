@@ -110,8 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lines.forEach((line, index) => {
              // Separar por comas (o punto y coma)
              let cols = line.split(';');
-             if (cols.length < 7) cols = line.split(','); // Fallback a coma
-             if (cols.length < 7) return; // Si la línea no tiene las 7 columnas, se salta (Ej. líneas vacías)
+             // Si con punto y coma no saca al menos 2, probamos con coma normal
+             if (cols.length < 2) cols = line.split(','); 
+             
+             // Si no tiene ni siquiera Clave y Nombre (2 columnas mínimo), saltamos la línea
+             if (cols.length < 2) return; 
 
              // Limpieza y Extracción CLAVE, NOMBRE, PRECIO CATALOGO, PRECIO FI, DESCUENTO, PRECIO CLIENTE PROMOCIONAL, PRECIO FI PROMOCIONAL PUNTOS
              const clave = cols[0].trim();
