@@ -81,6 +81,10 @@
             <span class="material-icons-round">group</span>
             <span>Clientes</span>
           </a>
+          <button id="btnOpenAnalysis" class="action-card" style="border: none; cursor: pointer; text-align: left; width: 100%;">
+            <span class="material-icons-round" style="color: var(--secondary);">bar_chart</span>
+            <span>Análisis Mensual</span>
+          </button>
           <a href="ajustes.html" class="action-card">
             <span class="material-icons-round">settings</span>
             <span>Ajustes</span>
@@ -89,7 +93,7 @@
         
         <!-- Firma de Versión -->
         <div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">
-            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">v1.00.18</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">v1.00.19</div>
             <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin-top: 4px;">
                 By <span style="color: var(--primary-light);">JMSystem</span>
             </div>
@@ -118,6 +122,26 @@
             <button id="btnLogin" class="btn btn-primary" style="width: 100%; margin-top: 10px; height: 50px; font-size: 1.1rem;">
                 Entrar a la App
             </button>
+        </div>
+    </div>
+
+    <!-- Modal de Análisis de Rentabilidad Mensual -->
+    <div id="monthlyAnalysisModal" class="modal-fullscreen" style="z-index: 9998; padding-top: 20px;">
+        <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h2>Rentabilidad Mensual</h2>
+                <button type="button" class="icon-btn" id="closeAnalysisBtn" aria-label="Cerrar">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+                Desglose de tus ingresos y ganancias netas mes a mes (basado en el costo del producto vs ventas cerradas).
+            </p>
+
+            <div id="analysisList" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                <!-- Aquí se inyectan las tarjetas mensuales desde JS -->
+            </div>
         </div>
     </div>
 

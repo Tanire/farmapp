@@ -73,6 +73,26 @@ class DashboardApp {
         if(btnLogin) {
              btnLogin.addEventListener('click', () => this.processLogin());
         }
+
+        // Análisis Mensual
+        const btnOpenAnalysis = document.getElementById('btnOpenAnalysis');
+        const closeAnalysisBtn = document.getElementById('closeAnalysisBtn');
+        const monthlyAnalysisModal = document.getElementById('monthlyAnalysisModal');
+
+        if (btnOpenAnalysis && monthlyAnalysisModal) {
+            btnOpenAnalysis.addEventListener('click', () => {
+                this.buildAnalysis();
+                monthlyAnalysisModal.classList.add('active');
+            });
+
+            closeAnalysisBtn.addEventListener('click', () => {
+                monthlyAnalysisModal.classList.remove('active');
+            });
+
+            monthlyAnalysisModal.addEventListener('click', (e) => {
+                if(e.target === monthlyAnalysisModal) monthlyAnalysisModal.classList.remove('active');
+            });
+        }
     }
 
     checkLogin() {
@@ -123,6 +143,86 @@ class DashboardApp {
         
         document.getElementById('pendingCollection').textContent = AppUtil.formatCurrency(pendingAmount);
         document.getElementById('pendingCollection').className = `stat-value ${pendingAmount > 0 ? 'text-accent' : ''}`;
+    }
+
+    buildAnalysis() {
+        const sales = StorageService.getSales();
+        const analysisList = document.getElementById('analysisList');
+        if(!analysisList) return;
+
+        analysisList.innerHTML = '';
+        const monthlyData = {};
+        
+        // Diccionario de meses en español
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        sales.forEach(sale => {
+            // Solo contabilizamos ventas efectivamente cerradas (No incluir presupuestos caídos ni eliminadas virtualmente, si aplica)
+            // Asumimos que cuentan todas las realizadas (pagadas o no, son ingresos del mes aunque estén por cobrar).
+            // Si el usuario quiere solo cobrar, envolver en if(sale.isPaid). Lo haremos estándar.
+            
+            const d = new Date(sale.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; // ej: "2026-02"
+            
+            if(!monthlyData[key]) {
+                 monthlyData[key] = {
+                     year: d.getFullYear(),
+                     monthStr: monthNames[d.getMonth()],
+                     revenue: 0,
+                     cost: 0
+                 };
+            }
+            
+            monthlyData[key].revenue += Number(sale.total || 0);
+            monthlyData[key].cost += Number(sale.costTotal || 0); // Este campo lo implementamos en versiones previas
+        });
+
+        const keys = Object.keys(monthlyData).sort((a,b) => b.localeCompare(a)); // Ordenar descendente (más recientes primero)
+        
+        if (keys.length === 0) {
+            analysisList.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons-round" style="font-size: 48px; color: var(--border-color); margin-bottom: 10px;">analytics</span>
+                    <h3>No hay datos</h3>
+                    <p style="margin-top: 5px;">Realiza ventas primero para ver estadísticas.</p>
+                </div>
+            `;
+            return;
+        }
+
+        keys.forEach(k => {
+            const data = monthlyData[k];
+            const profit = data.revenue - data.cost;
+            const isProfit = profit >= 0;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.marginBottom = '15px';
+            card.style.borderLeft = `4px solid ${isProfit ? 'var(--secondary)' : 'var(--danger)'}`;
+            
+            // UI Desglose
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:10px; margin-bottom:10px;">
+                    <h3 style="margin:0; font-size:1.1rem;">${data.monthStr} ${data.year}</h3>
+                    <div style="text-align:right;">
+                        <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Beneficio Neto</span>
+                        <span style="font-weight:700; font-size:1.2rem; color:${isProfit ? 'var(--secondary)' : 'var(--danger)'};">${profit > 0 ? '+' : ''}${AppUtil.formatCurrency(profit)}</span>
+                    </div>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="background:var(--bg-input); padding:10px; border-radius:var(--radius-sm); text-align:center;">
+                        <span style="font-size:0.7rem; color:var(--text-muted); display:block; text-transform:uppercase;">Ingresos Brutos</span>
+                        <span style="font-weight:600; color:var(--text-main); font-size:1.05rem;">${AppUtil.formatCurrency(data.revenue)}</span>
+                    </div>
+                    <div style="background:var(--bg-input); padding:10px; border-radius:var(--radius-sm); text-align:center;">
+                        <span style="font-size:0.7rem; color:var(--text-muted); display:block; text-transform:uppercase;">Inversión / Coste</span>
+                        <span style="font-weight:600; color:var(--danger); font-size:1.05rem;">${AppUtil.formatCurrency(data.cost)}</span>
+                    </div>
+                </div>
+            `;
+            analysisList.appendChild(card);
+        });
     }
 
     async handleManualSync() {
