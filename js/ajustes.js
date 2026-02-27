@@ -5,32 +5,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     
     const sellerNameInput = document.getElementById('sellerName');
-    const githubTokenInput = document.getElementById('githubToken');
-    const gistIdInput = document.getElementById('gistId');
+    const sellerEmailInput = document.getElementById('sellerEmail');
     const settingsForm = document.getElementById('settingsForm');
     const btnCreateGist = document.getElementById('btnCreateGist');
     const btnWipeData = document.getElementById('btnWipeData');
 
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
-    githubTokenInput.value = localStorage.getItem('farmapp_github_token') || '';
-    gistIdInput.value = localStorage.getItem('farmapp_gist_id') || '';
+    sellerEmailInput.value = localStorage.getItem('farmapp_seller_email') || '';
 
     // Guardar Configuración
     settingsForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const seller = sellerNameInput.value.trim().toUpperCase(); // Normalizar nombre
-        const token = githubTokenInput.value.trim();
-        const gist = gistIdInput.value.trim();
+        const seller = sellerNameInput.value.trim();
+        const email = sellerEmailInput.value.trim().toLowerCase();
 
-        if (seller && token) {
-            const currentSeller = localStorage.getItem('farmapp_seller_name');
+        if (seller && email) {
+            const currentEmail = localStorage.getItem('farmapp_seller_email');
             
-            // Si cambió de vendedor, limpiar BD local de clientes y ventas para no mochearlos
-            if (currentSeller && currentSeller !== seller) {
-                 const pass = confirm(`Vas a cambiar el perfil de "${currentSeller}" a "${seller}". Esto borrará tus clientes y ventas locales actuales para descargar los de ${seller}. ¿Continuar?`);
+            // Si cambió de email, limpiar BD local de clientes y ventas
+            if (currentEmail && currentEmail !== email) {
+                 const pass = confirm(`Vas a cambiar tu sesión de "${currentEmail}" a "${email}". Esto borrará tus clientes locales para bajar los del nuevo correo. ¿Continuar?`);
                  if (!pass) {
-                     sellerNameInput.value = currentSeller;
+                     sellerEmailInput.value = currentEmail;
                      return;
                  }
                  localStorage.removeItem('farmapp_clients');
@@ -38,40 +35,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             localStorage.setItem('farmapp_seller_name', seller);
-            localStorage.setItem('farmapp_github_token', token);
-            localStorage.setItem('farmapp_gist_id', gist);
-            AppUtil.showToast('Configuración guardada.', 'success');
+            localStorage.setItem('farmapp_seller_email', email);
+            AppUtil.showToast('Datos actualizados.', 'success');
             
-            // Disparar sincronización inmediata tras guardar
+            // Disparar sincronización
             window.dispatchEvent(new Event('farmapp_data_changed'));
         }
     });
 
-    // Inicializar Gist (Subir Todo)
+    // Inicializar Gist (Forzar subida completa si fuese necesario)
     btnCreateGist.addEventListener('click', async () => {
-        const seller = sellerNameInput.value.trim().toUpperCase();
-        const token = githubTokenInput.value.trim();
+        const email = sellerEmailInput.value.trim();
         
-        if (!seller || !token) {
-            AppUtil.showToast('Debes ingresar tu Vendedor y Token de GitHub', 'error');
+        if (!email) {
+            AppUtil.showToast('Falta tu correo en ajustes', 'error');
             return;
         }
 
         const confirmCreate = confirm("Esto creará un nuevo archivo Gist en tu GitHub con los datos locales actuales de este dispositivo. ¿Estás seguro?");
         if (!confirmCreate) return;
 
-        AppUtil.showToast('Creando Gist, espera...', 'success');
-        
+        btnCreateGist.querySelector('.material-icons-round').style.color = 'var(--text-muted)';
+
         try {
-            const newGistId = await SyncService.createGist(token);
-            if (newGistId) {
-                gistIdInput.value = newGistId;
-                localStorage.setItem('farmapp_gist_id', newGistId);
-                AppUtil.showToast('¡Gist creado y sincronizado con éxito!', 'success');
+            // Usando constantes globales incrustadas en main.js
+            const token = GITHUB_TOKEN;
+            const gistId = GITHUB_GIST_ID;
+            
+            const result = await SyncService.syncWithCloud(token, gistId);
+            
+            if (result.success) {
+                AppUtil.showToast('¡Nube inicializada con éxito!', 'success');
             } else {
-                AppUtil.showToast('Error al crear el Gist en GitHub.', 'error');
+                AppUtil.showToast('Error: ' + result.error, 'error');
             }
-        } catch (error) {
+        } catch(error) {
             AppUtil.showToast('Excepción al crear Gist.', 'error');
         }
     });
@@ -83,7 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('farmapp_products');
             localStorage.removeItem('farmapp_clients');
             localStorage.removeItem('farmapp_sales');
-            AppUtil.showToast('Datos locales borrados.', 'success');
+            localStorage.removeItem('farmapp_seller_name');
+            localStorage.removeItem('farmapp_seller_email');
+            
+            AppUtil.showToast('Sesión cerrada y datos borrados. Reiniciando...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
         }
     });
 });

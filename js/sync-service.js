@@ -136,8 +136,9 @@ const SyncService = {
     },
 
     async syncWithCloud(token, gistId) {
-        const sellerName = localStorage.getItem('farmapp_seller_name');
-        if(!sellerName) return {success: false, error: 'Configura un Vendedor en Ajustes primero.'};
+        // Usar Email como identificador de carpeta único para evitar fallos por nombres duplicados/erratas
+        const sellerEmail = localStorage.getItem('farmapp_seller_email');
+        if(!sellerEmail) return {success: false, error: 'Inicia sesión primero.'};
 
         try {
             let cloudData = null;
@@ -153,14 +154,14 @@ const SyncService = {
 
             if (!cloudData) {
                 // Si no hay nube generamos el primer esqueleto
-                return await this.updateGist(token, gistId, this.getAllLocalData(sellerName));
+                return await this.updateGist(token, gistId, this.getAllLocalData(sellerEmail));
             }
 
-            const localData = this.getAllLocalData(sellerName);
+            const localData = this.getAllLocalData(sellerEmail);
             
             // Garantizar estructura de nube si es vieja (v1.0.0 a v1.1.0)
             if(!cloudData.users) cloudData.users = {};
-            if(!cloudData.users[sellerName]) cloudData.users[sellerName] = { clients: [], sales: [] };
+            if(!cloudData.users[sellerEmail]) cloudData.users[sellerEmail] = { clients: [], sales: [] };
 
             // Realizamos el COMBINADO
             const mergedData = {
@@ -168,14 +169,14 @@ const SyncService = {
                 users: { ...cloudData.users } // Copiamos al resto de vendedores como estén
             };
 
-            // Y ahora mergeamos únicamente el compartimento del vendedor local
-            mergedData.users[sellerName] = {
-                clients: this.mergeArrays(localData.users[sellerName].clients, cloudData.users[sellerName].clients),
-                sales: this.mergeArrays(localData.users[sellerName].sales, cloudData.users[sellerName].sales)
+            // Y ahora mergeamos únicamente el compartimento del vendedor local (Email)
+            mergedData.users[sellerEmail] = {
+                clients: this.mergeArrays(localData.users[sellerEmail].clients, cloudData.users[sellerEmail].clients),
+                sales: this.mergeArrays(localData.users[sellerEmail].sales, cloudData.users[sellerEmail].sales)
             };
 
             // Guardamos localmente lo combinado (Solo productos y MIS clientes/ventas)
-            this.restoreData(mergedData, sellerName);
+            this.restoreData(mergedData, sellerEmail);
 
             // Subimos TODO el ecosistema (Incluyendo a los otros vendedores) al Gist
             return await this.updateGist(token, gistId, mergedData);

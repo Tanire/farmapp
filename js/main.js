@@ -2,6 +2,11 @@
  * Main App Script - FarmApp
  */
 
+// --- CREDENCIALES GLOBALES EMBEBIDAS ---
+const GITHUB_TOKEN = "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";
+const GITHUB_GIST_ID = "559c83ec23a2993f5d5ebff9eb2685d7";
+// ---------------------------------------
+
 const AppUtil = {
     showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
@@ -31,6 +36,9 @@ class DashboardApp {
         this.initPWA();
         this.bindEvents();
         
+        // Check Login (Onboarding)
+        this.checkLogin();
+
         // Si estamos en index.html, cargamos el dashboard
         if (document.getElementById('todaySales')) {
             this.loadDashboardData();
@@ -64,6 +72,41 @@ class DashboardApp {
         window.addEventListener('farmapp_data_changed', () => {
              this.autoSync();
         });
+
+        // Botón Login
+        const btnLogin = document.getElementById('btnLogin');
+        if(btnLogin) {
+             btnLogin.addEventListener('click', () => this.processLogin());
+        }
+    }
+
+    checkLogin() {
+        const userEmail = localStorage.getItem('farmapp_seller_email');
+        const loginModal = document.getElementById('loginModal');
+        
+        if (!userEmail && loginModal) {
+            loginModal.classList.add('active'); // Mostrar el login form y bloquear detrás
+        }
+    }
+
+    async processLogin() {
+        const nameInput = document.getElementById('loginName').value.trim();
+        const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
+        
+        if(!nameInput || !emailInput || !emailInput.includes('@')) {
+             AppUtil.showToast("Por favor, introduce un nombre y un correo válido", "error");
+             return;
+        }
+
+        // Guardar credenciales de usuario localmente
+        localStorage.setItem('farmapp_seller_name', nameInput);
+        localStorage.setItem('farmapp_seller_email', emailInput);
+        
+        document.getElementById('loginModal').classList.remove('active');
+        AppUtil.showToast(`¡Bienvenido/a, ${nameInput}!`, "success");
+        
+        // Disparar sincronización para bajar sus datos desde la nube
+        this.autoSync();
     }
 
     loadDashboardData() {
@@ -88,13 +131,13 @@ class DashboardApp {
     }
 
     async handleManualSync() {
-        // En un futuro se leerán de localStorage tras configurarse en "Configuración"
-        const token = localStorage.getItem('farmapp_github_token');
-        const gistId = localStorage.getItem('farmapp_gist_id');
+        // Usar las credenciales globales en vez de las del usuario
+        const token = GITHUB_TOKEN;
+        const gistId = GITHUB_GIST_ID;
 
-        if (!token || !gistId) {
-            AppUtil.showToast("Configura tu Token y Gist en Ajustes", "error");
-            window.location.href = 'ajustes.html';
+        const email = localStorage.getItem('farmapp_seller_email');
+        if (!email) {
+            AppUtil.showToast("Identifícate primero recargando la página", "error");
             return;
         }
 
@@ -127,9 +170,10 @@ class DashboardApp {
     }
 
     async autoSync() {
-        const token = localStorage.getItem('farmapp_github_token');
-        const gistId = localStorage.getItem('farmapp_gist_id');
-        if (!token || !gistId) return;
+        const token = GITHUB_TOKEN;
+        const gistId = GITHUB_GIST_ID;
+        const email = localStorage.getItem('farmapp_seller_email');
+        if (!email) return;
 
         const btnSync = document.getElementById('btnSync');
         if (btnSync) {

@@ -97,6 +97,30 @@
       </div>
     </main>
 
+    <!-- Modal de Login Obligatorio (App Onboarding) -->
+    <div id="loginModal" class="modal-fullscreen" style="z-index: 9999; background: var(--bg-dark); justify-content: center; padding: 20px;">
+        <div style="background: var(--bg-card); padding: 30px 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); text-align: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 400px; margin: 0 auto;">
+            <div style="font-size: 3rem; color: var(--primary-light); margin-bottom: 10px;">
+                <span class="material-icons-round" style="font-size:inherit;">spa</span>
+            </div>
+            <h2 style="margin-bottom: 5px;">Bienvenido a FarmApp</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Identifícate para sincronizar tus ventas</p>
+
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Tu Nombre</label>
+                <input type="text" id="loginName" class="form-control" placeholder="Ej. Juan Pérez" required style="margin-bottom: 15px;">
+                
+                <label class="form-label">Tu Correo Electrónico *</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="juan@ejemplo.com" required>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">Este correo será tu identificador único en la nube. Úsalo en otros dispositivos para recuperar tus clientes.</p>
+            </div>
+
+            <button id="btnLogin" class="btn btn-primary" style="width: 100%; margin-top: 10px; height: 50px; font-size: 1.1rem;">
+                Entrar a la App
+            </button>
+        </div>
+    </div>
+
     <!-- Navegación Inferior Móvil -->
     <nav class="bottom-nav">
       <a href="index.html" class="nav-item active">
