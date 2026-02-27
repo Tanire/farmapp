@@ -50,8 +50,21 @@
                 </form>
             </div>
 
-            <h2 class="section-title">Opciones de Sincronización</h2>
-            <div class="action-grid" style="grid-template-columns: 1fr;">
+            <!-- Importación de Catálogo (NUEVO) -->
+            <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px;">
+                <h3 class="section-title" style="color: var(--primary-light); margin-top: 0;">Importar Productos</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">
+                    Puedes subir tu catálogo desde Excel guardándolo como archivo <b>.CSV (Valores separados por comas)</b>. <br><br>
+                    Obligatorio 3 columnas: Columna 1 (Nombre), Columna 2 (Costo Ej. 10.50), Columna 3 (Precio Venta Ej. 15.00). No pongas títulos en la primera fila.
+                </p>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                <button id="btnImportCSV" class="btn" style="width: 100%; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--primary);">
+                    <span class="material-icons-round">upload_file</span> Subir Archivo Excel (CSV)
+                </button>
+            </div>
+
+            <div style="background: rgba(220, 38, 38, 0.1); border-radius: var(--radius-md); padding: 20px; border: 1px solid rgba(220, 38, 38, 0.2); margin-bottom: 80px;">
+                <h3 class="section-title" style="color: var(--accent); margin-top: 0;">Zona Peligrosa</h3>
                  <button id="btnCreateGist" class="action-card" style="border: none; cursor: pointer; justify-content: flex-start; width: 100%; text-align: left;">
                     <span class="material-icons-round" style="color: var(--secondary);">cloud_upload</span>
                     <div style="display: flex; flex-direction: column;">
