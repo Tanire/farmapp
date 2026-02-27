@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveAdmin = document.getElementById('btnSaveAdmin');
     const btnWipeCatalog = document.getElementById('btnWipeCatalog');
 
+    // Elementos Actualizador
+    const localAppVersionDisplay = document.getElementById('localAppVersion');
+    const cloudAppVersionDisplay = document.getElementById('cloudAppVersion');
+    const btnForceUpdate = document.getElementById('btnForceUpdate');
+    const CURRENT_LOCAL_VERSION = "v1.00.18"; // VARIABLE VIVA DE ACTUALIZACION DE APP
+
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
     sellerEmailInput.value = localStorage.getItem('farmapp_seller_email') || '';
@@ -79,6 +85,74 @@ document.addEventListener('DOMContentLoaded', () => {
                      }
                  });
             }
+        });
+    }
+
+    // --- Módulo de Actualización Automática Integrada ---
+    if (localAppVersionDisplay) {
+        localAppVersionDisplay.textContent = CURRENT_LOCAL_VERSION;
+    }
+    
+    // Buscar la versión de la nube y pintar
+    async function checkCloudVersion() {
+        if (!cloudAppVersionDisplay) return;
+        try {
+            // El ?t= bloquea el caché de la consulta
+            const res = await fetch('version.json?t=' + new Date().getTime());
+            if (res.ok) {
+                const data = await res.json();
+                cloudAppVersionDisplay.textContent = data.version;
+                
+                // Efecto visual si hay desactualizacion
+                if (data.version !== CURRENT_LOCAL_VERSION) {
+                    cloudAppVersionDisplay.style.color = '#ef4444'; // rojo
+                    cloudAppVersionDisplay.innerHTML += ' ⚠️';
+                } else {
+                    cloudAppVersionDisplay.style.color = '#10b981'; // verde
+                    cloudAppVersionDisplay.innerHTML += ' ✓';
+                }
+            } else {
+                cloudAppVersionDisplay.textContent = 'Fuera de Línea';
+            }
+        } catch(e) {
+            cloudAppVersionDisplay.textContent = 'Error';
+        }
+    }
+    checkCloudVersion();
+
+    if (btnForceUpdate) {
+        btnForceUpdate.addEventListener('click', async () => {
+             btnForceUpdate.disabled = true;
+             btnForceUpdate.innerHTML = '<span class="material-icons-round" style="animation: spin 1s linear infinite;">autorenew</span> Purgando la Caché...';
+             
+             try {
+                // 1. Desregistrar los Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                
+                // 2. Borrar las Cachés almacenadas para forzar recarga por red entera
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (let key of keys) {
+                        await caches.delete(key);
+                    }
+                }
+                
+                AppUtil.showToast("Caché borrada y app liberada. Reiniciando pantalla...", "success");
+                
+                // 3. Destruir y Regargar hardcoded
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 1000);
+             } catch(e) {
+                 AppUtil.showToast("Error limpiando caché maestra: " + e.message, "error");
+                 btnForceUpdate.disabled = false;
+                 btnForceUpdate.innerHTML = '<span class="material-icons-round">autorenew</span> Sincronizar Caché de Versiones';
+             }
         });
     }
 
