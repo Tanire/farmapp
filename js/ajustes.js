@@ -110,27 +110,61 @@ document.addEventListener('DOMContentLoaded', () => {
         lines.forEach((line, index) => {
              // Separar por comas (o punto y coma)
              let cols = line.split(';');
-             if (cols.length < 3) cols = line.split(','); // Fallback a coma
-             if (cols.length < 3) return; // Si la línea está mal, se salta
+             if (cols.length < 7) cols = line.split(','); // Fallback a coma
+             if (cols.length < 7) return; // Si la línea no tiene las 7 columnas, se salta (Ej. líneas vacías)
 
-             const name = cols[0].trim();
-             const cost = parseFloat(cols[1].replace(',', '.')); // Soporte comas decimales europa
-             const price = parseFloat(cols[2].replace(',', '.'));
+             // Limpieza y Extracción CLAVE, NOMBRE, PRECIO CATALOGO, PRECIO FI, DESCUENTO, PRECIO CLIENTE PROMOCIONAL, PRECIO FI PROMOCIONAL PUNTOS
+             const clave = cols[0].trim();
+             const name = cols[1].trim();
+             
+             // Los precios y descuentos pueden venir vacíos, con comas, símbolos de moneda, %, etc.
+             function cleanNum(val) {
+                 if(!val) return 0;
+                 // Reemplaza coma por punto y extrae solo números y punto decimal
+                 let parsed = parseFloat(val.toString().replace(/,/g, '.').replace(/[^\d.-]/g, ''));
+                 return isNaN(parsed) ? 0 : parsed;
+             }
+             
+             // El descuento a menudo viene como porcentaje "15%", lo limpiamos pero lo podemos dejar como "15" numérico o "15%" string. Lo pasaremos a número para manipularlo.
+             function cleanTextOrNum(val) {
+                 if(!val) return "";
+                 return val.toString().trim();
+             }
 
-             // Ignorar cabeceras si las hay (ej. si la primera fila dice "Nombre", cost será NaN)
-             if (name && !isNaN(cost) && !isNaN(price)) {
-                  // Comprobar si ya existe uno con un nombre exacto
-                  const exists = currentProducts.find(p => p.name.toLowerCase() === name.toLowerCase());
-                  if (!exists) {
-                       currentProducts.push({
-                           id: 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
-                           name: name,
-                           description: '',
-                           costPrice: cost,
-                           salePrice: price,
-                           stock: 0,
-                           image: '' // CSV sin imagen
-                       });
+             const precioCatalogo = cleanNum(cols[2]);
+             const precioFi = cleanNum(cols[3]);
+             const descuento = cleanTextOrNum(cols[4]);
+             const precioClientePromo = cleanNum(cols[5]);
+             const precioFiPromoPuntos = cleanNum(cols[6]);
+
+             // Ignorar cabeceras si las hay (ej. si la primera fila dice "NOMBRE", clave no debe estar vacía)
+             if (clave && name && clave.toLowerCase() !== "clave") {
+                  // Comprobar si ya existe uno con la MISMA CLAVE (Evitamos duplicar importaciones)
+                  const existsIndex = currentProducts.findIndex(p => p.clave === clave);
+                  
+                  const newProduct = {
+                       id: 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
+                       clave: clave,
+                       name: name,
+                       description: '', // Descripcion general si se quiere añadir después
+                       precioCatalogo: precioCatalogo,
+                       precioFi: precioFi,
+                       descuento: descuento,
+                       precioClientePromo: precioClientePromo,
+                       precioFiPromoPuntos: precioFiPromoPuntos,
+                       costPrice: 0, // Campos antiguos para evitar romper compras pasadas (Compatibilidad)
+                       salePrice: precioCatalogo, 
+                       stock: 0,
+                       image: ''
+                  };
+
+                  if (existsIndex >= 0) {
+                       // Si la clave ya existe, ACTUALIZAMOS LOS PRECIOS (útil para cuando pasan un CSV nuevo con tarifas actualizadas)
+                       currentProducts[existsIndex] = {...currentProducts[existsIndex], ...newProduct, id: currentProducts[existsIndex].id }; // Mantener ID original viejo
+                       importedCount++;
+                  } else {
+                       // Si es nuevo, se inserta
+                       currentProducts.push(newProduct);
                        importedCount++;
                   }
              }
@@ -138,9 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (importedCount > 0) {
             StorageService.saveProducts(currentProducts);
-            AppUtil.showToast(`Se han importado ${importedCount} productos nuevos con éxito.`, 'success');
+            AppUtil.showToast(`Se importaron / actualizaron ${importedCount} productos.`, 'success');
         } else {
-            AppUtil.showToast('No se encontró ningún producto nuevo para importar o el formato es erróneo.', 'error');
+            AppUtil.showToast('No se encontró ningún producto válido o el archivo no tiene 7 columnas.', 'error');
         }
     }
 
