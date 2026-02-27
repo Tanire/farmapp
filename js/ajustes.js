@@ -158,12 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
                        costPrice: 0, // Campos antiguos para evitar romper compras pasadas (Compatibilidad)
                        salePrice: precioCatalogo, 
                        stock: 0,
-                       image: ''
+                       image: '',
+                       updatedAt: new Date().toISOString()
                   };
 
                   if (existsIndex >= 0) {
                        // Si la clave ya existe, ACTUALIZAMOS LOS PRECIOS (útil para cuando pasan un CSV nuevo con tarifas actualizadas)
-                       currentProducts[existsIndex] = {...currentProducts[existsIndex], ...newProduct, id: currentProducts[existsIndex].id }; // Mantener ID original viejo
+                       currentProducts[existsIndex] = {...currentProducts[existsIndex], ...newProduct, id: currentProducts[existsIndex].id, updatedAt: new Date().toISOString() }; // Mantener ID original viejo
                        importedCount++;
                   } else {
                        // Si es nuevo, se inserta
@@ -174,10 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (importedCount > 0) {
-            StorageService.saveProducts(currentProducts);
-            AppUtil.showToast(`Se importaron / actualizaron ${importedCount} productos.`, 'success');
+            StorageService.saveProducts(currentProducts); // Esto dispara farmapp_data_changed
+            AppUtil.showToast(`Se importaron / actualizaron ${importedCount} productos. Subiendo a GitHub...`, 'success');
+            
+            // Forzar una sincronización visible para que el usuario no cierre la web y vea que termina
+            setTimeout(() => {
+                if(window.app && window.app.handleManualSync) {
+                    window.app.handleManualSync();
+                }
+            }, 500);
+            
         } else {
-            AppUtil.showToast('No se encontró ningún producto válido o el archivo no tiene 7 columnas.', 'error');
+            AppUtil.showToast('No se encontró ningún producto válido.', 'error');
         }
     }
 

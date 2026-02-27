@@ -1,4 +1,4 @@
-const CACHE_NAME = "farmapp-v3";
+const CACHE_NAME = "farmapp-v4";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
