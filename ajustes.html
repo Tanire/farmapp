@@ -25,7 +25,7 @@
 
     <main class="app-main">
         <div class="dashboard-section">
-            <h2 class="section-title">Conexión con GitHub (Nube)</h2>
+            <h2 class="section-title">Ajustes de Sesión</h2>
             <div class="stat-card" style="margin-bottom: 20px;">
                 <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 15px;">
                     Configura tu Token de Acceso Personal (PAT) de GitHub para utilizar un Gist privado como base de datos en la nube.
@@ -49,6 +49,28 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Opciones de Administrador (Token Local) -->
+            <details style="margin-bottom: 20px; background: var(--bg-card); border-radius: var(--radius-md); padding: 15px; border: 1px dashed var(--accent);">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent); outline: none; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons-round">admin_panel_settings</span> Opciones de Administrador (Nube)
+                </summary>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">Solo el dispositivo administrador necesita configurar estas credenciales para comunicarse con la base de datos central de GitHub.</p>
+                    <div class="form-group">
+                        <label class="form-label" style="color: var(--text-main);">GitHub Token (PAT)</label>
+                        <input type="password" id="adminToken" class="form-control" placeholder="ghp_...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="color: var(--text-main);">Gist ID</label>
+                        <input type="text" id="adminGist" class="form-control" placeholder="ID secreto del Gist" value="559c83ec23a2993f5d5ebff9eb2685d7">
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Déjalo por defecto a menos que crees uno nuevo.</p>
+                    </div>
+                    <button type="button" id="btnSaveAdmin" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--accent), #d97706); border: none; font-weight: bold;">
+                        Guardar Credenciales Seguras
+                    </button>
+                </div>
+            </details>
 
             <!-- Importación de Catálogo (NUEVO) -->
             <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px;">

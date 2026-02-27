@@ -14,9 +14,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnImportCSV = document.getElementById('btnImportCSV');
     const csvFileInput = document.getElementById('csvFileInput');
 
+    // Elementos Administrador Nube
+    const adminTokenInput = document.getElementById('adminToken');
+    const adminGistInput = document.getElementById('adminGist');
+    const btnSaveAdmin = document.getElementById('btnSaveAdmin');
+
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
     sellerEmailInput.value = localStorage.getItem('farmapp_seller_email') || '';
+    
+    if (adminTokenInput) adminTokenInput.value = localStorage.getItem('farmapp_github_token') || '';
+    if (adminGistInput) {
+        const savedGist = localStorage.getItem('farmapp_gist_id');
+        if (savedGist) adminGistInput.value = savedGist;
+    }
+
+    // Guardar Admin Nube
+    if (btnSaveAdmin) {
+        btnSaveAdmin.addEventListener('click', () => {
+            const token = adminTokenInput.value.trim();
+            const gist = adminGistInput.value.trim();
+            
+            if (token && gist) {
+                localStorage.setItem('farmapp_github_token', token);
+                localStorage.setItem('farmapp_gist_id', gist);
+                AppUtil.showToast('Credenciales de Administrador Guardadas Secundariamente.', 'success');
+            } else {
+                AppUtil.showToast('Pon un Token y Gist válidos.', 'error');
+            }
+        });
+    }
 
     // Guardar Configuración
     settingsForm.addEventListener('submit', (e) => {
@@ -62,9 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCreateGist.querySelector('.material-icons-round').style.color = 'var(--text-muted)';
 
         try {
-            // Usando constantes globales incrustadas en main.js
-            const token = GITHUB_TOKEN;
-            const gistId = GITHUB_GIST_ID;
+            // Usando credenciales del administrador en el localStorage
+            const token = localStorage.getItem('farmapp_github_token');
+            const gistId = localStorage.getItem('farmapp_gist_id');
+            
+            if (!token || !gistId) {
+                AppUtil.showToast('Configura primero las opciones de Administrador.', 'error');
+                return;
+            }
             
             const result = await SyncService.syncWithCloud(token, gistId);
             
@@ -199,6 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('farmapp_sales');
             localStorage.removeItem('farmapp_seller_name');
             localStorage.removeItem('farmapp_seller_email');
+            localStorage.removeItem('farmapp_github_token');
+            localStorage.removeItem('farmapp_gist_id');
             
             AppUtil.showToast('Sesión cerrada y datos borrados. Reiniciando...', 'success');
             setTimeout(() => {

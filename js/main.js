@@ -2,11 +2,6 @@
  * Main App Script - FarmApp
  */
 
-// --- CREDENCIALES GLOBALES EMBEBIDAS ---
-const GITHUB_TOKEN = "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";
-const GITHUB_GIST_ID = "559c83ec23a2993f5d5ebff9eb2685d7";
-// ---------------------------------------
-
 const AppUtil = {
     showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
@@ -131,9 +126,14 @@ class DashboardApp {
     }
 
     async handleManualSync() {
-        // Usar las credenciales globales en vez de las del usuario
-        const token = GITHUB_TOKEN;
-        const gistId = GITHUB_GIST_ID;
+        // Usar credenciales del administrador en LocalStorage
+        const token = localStorage.getItem('farmapp_github_token');
+        const gistId = localStorage.getItem('farmapp_gist_id');
+
+        if (!token || !gistId) {
+             AppUtil.showToast("El administrador debe configurar el Token en Ajustes", "error");
+             return;
+        }
 
         const email = localStorage.getItem('farmapp_seller_email');
         if (!email) {
@@ -170,8 +170,10 @@ class DashboardApp {
     }
 
     async autoSync() {
-        const token = GITHUB_TOKEN;
-        const gistId = GITHUB_GIST_ID;
+        const token = localStorage.getItem('farmapp_github_token');
+        const gistId = localStorage.getItem('farmapp_gist_id');
+        if (!token || !gistId) return; // No auto-sync si no hay config admin
+        
         const email = localStorage.getItem('farmapp_seller_email');
         if (!email) return;
 
