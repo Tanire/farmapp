@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>FarmApp - Ventas</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="FarmApp" />
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Google Fonts & Icons -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Encabezado Fijo -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1>FarmApp</h1>
+        <button id="btnSync" class="icon-btn" aria-label="Sincronizar">
+          <span class="material-icons-round">sync</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenedor Principal (Vistas dinámicas o base para PWA) -->
+    <main class="app-main" id="mainContainer">
+      <div class="dashboard-section">
+        <h2 class="section-title">Resumen de Hoy</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon ventas-icon">
+              <span class="material-icons-round">point_of_sale</span>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Ventas Hoy</p>
+              <h3 class="stat-value" id="todaySales">0.00 €</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pendientes-icon">
+              <span class="material-icons-round">pending_actions</span>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Pendiente Cobro</p>
+              <h3 class="stat-value" id="pendingCollection">0.00 €</h3>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="section-title mt-4">Acciones Rápidas</h2>
+        <div class="action-grid">
+          <a href="ventas.html" class="action-card">
+            <span class="material-icons-round">add_shopping_cart</span>
+            <span>Nueva Venta</span>
+          </a>
+          <a href="productos.html" class="action-card">
+            <span class="material-icons-round">inventory_2</span>
+            <span>Productos</span>
+          </a>
+          <a href="clientes.html" class="action-card">
+            <span class="material-icons-round">group</span>
+            <span>Clientes</span>
+          </a>
+          <a href="ajustes.html" class="action-card">
+            <span class="material-icons-round">settings</span>
+            <span>Ajustes</span>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Navegación Inferior Móvil -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item active">
+        <span class="material-icons-round">dashboard</span>
+        <span>Inicio</span>
+      </a>
+      <a href="productos.html" class="nav-item">
+        <span class="material-icons-round">inventory_2</span>
+        <span>Productos</span>
+      </a>
+      <a href="ventas.html" class="nav-item">
+        <span class="material-icons-round">receipt_long</span>
+        <span>Ventas</span>
+      </a>
+      <a href="clientes.html" class="nav-item">
+        <span class="material-icons-round">people</span>
+        <span>Clientes</span>
+      </a>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Notificación</div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/sync-service.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

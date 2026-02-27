@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clientes - FarmApp</title>
+    
+    <meta name="theme-color" content="#0F172A">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+    <style>
+        .client-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .client-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .client-details h3 {
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .client-details p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .client-debt {
+            text-align: right;
+        }
+
+        .debt-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .debt-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .debt-amount.has-debt { color: var(--accent); }
+        .debt-amount.no-debt { color: var(--secondary); }
+
+        /* FAB Button */
+        .fab-button {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1500;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 20px 20px 0 0;
+            padding: 25px 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Historial de un Cliente */
+        .history-list {
+            margin-top: 20px;
+        }
+        
+        .history-item {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1>Clientes</h1>
+            <div class="search-box" style="flex-grow:1; margin-left: 15px;">
+                <input type="text" id="searchClient" class="form-control" placeholder="Buscar..." style="padding: 8px 12px;">
+            </div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <div id="clientsList">
+            <!-- Lista Dinámica -->
+        </div>
+    </main>
+
+    <!-- Modal Formulario de Cliente -->
+    <div id="clientModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nuevo Cliente</h2>
+                <button id="closeClientModalBtn" class="icon-btn">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+
+            <form id="clientForm">
+                <input type="hidden" id="clientId">
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo *</label>
+                    <input type="text" id="cliName" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" id="cliPhone" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Dirección / Notas</label>
+                    <input type="text" id="cliAddress" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Cliente</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Perfil Detalle del Cliente -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="profName">Perfil del Cliente</h2>
+                <button id="closeProfileBtn" class="icon-btn">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card" style="padding: 15px;">
+                    <p class="stat-label">Pendiente</p>
+                    <h3 class="stat-value text-accent" id="profDebt">0.00 €</h3>
+                </div>
+                <div class="stat-card" style="padding: 15px;">
+                    <p class="stat-label">Comprado</p>
+                    <h3 class="stat-value text-secondary" id="profTotal">0.00 €</h3>
+                </div>
+            </div>
+
+            <h3 class="section-title">Historial de Compras</h3>
+            <div id="clientHistory" class="history-list">
+                <!-- Ventas aquí -->
+            </div>
+            
+            <button id="btnEditClientProfile" class="btn btn-primary" style="width: 100%; margin-top: 15px; background: var(--bg-input); color: var(--text-main);">Editar Datos</button>
+        </div>
+    </div>
+
+    <button id="btnNewClient" class="fab-button" aria-label="Añadir Cliente">
+        <span class="material-icons-round" style="font-size: 30px;">person_add</span>
+    </button>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="material-icons-round">dashboard</span>
+            <span>Inicio</span>
+        </a>
+        <a href="productos.html" class="nav-item">
+            <span class="material-icons-round">inventory_2</span>
+            <span>Productos</span>
+        </a>
+        <a href="ventas.html" class="nav-item">
+            <span class="material-icons-round">receipt_long</span>
+            <span>Ventas</span>
+        </a>
+        <a href="clientes.html" class="nav-item active">
+            <span class="material-icons-round">people</span>
+            <span>Clientes</span>
+        </a>
+    </nav>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/clientes.js"></script>
+</body>
+</html>

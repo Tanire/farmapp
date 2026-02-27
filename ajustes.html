@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ajustes - FarmApp</title>
+    
+    <meta name="theme-color" content="#0F172A">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+    <!-- Encabezado Fijo -->
+    <header class="app-header">
+        <div class="header-content" style="justify-content: flex-start; gap: 15px;">
+            <a href="index.html" class="icon-btn" aria-label="Volver">
+                <span class="material-icons-round">arrow_back</span>
+            </a>
+            <h1>Ajustes y Nube</h1>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <div class="dashboard-section">
+            <h2 class="section-title">Conexión con GitHub (Nube)</h2>
+            <div class="stat-card" style="margin-bottom: 20px;">
+                <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 15px;">
+                    Configura tu Token de Acceso Personal (PAT) de GitHub para utilizar un Gist privado como base de datos en la nube.
+                </p>
+                
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label class="form-label">GitHub Token (PAT)</label>
+                        <input type="password" id="githubToken" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxx" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Gist ID (Opcional)</label>
+                        <input type="text" id="gistId" class="form-control" placeholder="Deja en blanco para crear uno nuevo">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <span class="material-icons-round">save</span>
+                        Guardar Configuración
+                    </button>
+                </form>
+            </div>
+
+            <h2 class="section-title">Opciones de Sincronización</h2>
+            <div class="action-grid" style="grid-template-columns: 1fr;">
+                 <button id="btnCreateGist" class="action-card" style="border: none; cursor: pointer; justify-content: flex-start; width: 100%; text-align: left;">
+                    <span class="material-icons-round" style="color: var(--secondary);">cloud_upload</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 600;">Inicializar Nube (Crear Gist)</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">Sube todos los datos locales actuales a un nuevo repositorio Gist.</span>
+                    </div>
+                </button>
+            </div>
+            
+            <h2 class="section-title mt-4">Gestión de Datos Locales</h2>
+            <div class="action-grid" style="grid-template-columns: 1fr;">
+                 <button id="btnWipeData" class="action-card" style="border: none; cursor: pointer; justify-content: flex-start; width: 100%; text-align: left; background-color: rgba(239, 68, 68, 0.1);">
+                    <span class="material-icons-round" style="color: var(--danger);">delete_forever</span>
+                    <div style="display: flex; flex-direction: column; color: var(--danger);">
+                        <span style="font-weight: 600;">Borrar Datos Locales</span>
+                        <span style="font-size: 0.75rem;">Elimina toda la información de este dispositivo permanentemente.</span>
+                    </div>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Navegación Inferior -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="material-icons-round">dashboard</span>
+            <span>Inicio</span>
+        </a>
+        <a href="productos.html" class="nav-item">
+            <span class="material-icons-round">inventory_2</span>
+            <span>Productos</span>
+        </a>
+        <a href="ventas.html" class="nav-item">
+            <span class="material-icons-round">receipt_long</span>
+            <span>Ventas</span>
+        </a>
+        <a href="clientes.html" class="nav-item">
+            <span class="material-icons-round">people</span>
+            <span>Clientes</span>
+        </a>
+    </nav>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/sync-service.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/ajustes.js"></script>
+</body>
+</html>

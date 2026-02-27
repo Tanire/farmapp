@@ -1,0 +1,135 @@
+/**
+ * Main App Script - FarmApp
+ */
+
+const AppUtil = {
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        
+        setTimeout(() => {
+            toast.className = `toast ${type}`;
+        }, 3000);
+    },
+
+    formatCurrency(amount) {
+        return Number(amount).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    },
+    
+    formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('es-ES');
+    }
+};
+
+class DashboardApp {
+    constructor() {
+        this.initPWA();
+        this.bindEvents();
+        
+        // Si estamos en index.html, cargamos el dashboard
+        if (document.getElementById('todaySales')) {
+            this.loadDashboardData();
+        }
+    }
+
+    initPWA() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('SW registrado con éxito:', registration.scope);
+                    })
+                    .catch(err => {
+                        console.error('Error registrando SW:', err);
+                    });
+            });
+        }
+    }
+
+    bindEvents() {
+        const btnSync = document.getElementById('btnSync');
+        if (btnSync) {
+            btnSync.addEventListener('click', () => this.handleManualSync());
+        }
+    }
+
+    loadDashboardData() {
+        const sales = StorageService.getSales();
+        
+        // Calcular ventas de HOY
+        const today = new Date().toISOString().split('T')[0];
+        const todaySalesAmount = sales
+            .filter(sale => sale.date.startsWith(today))
+            .reduce((total, sale) => total + Number(sale.total || 0), 0);
+            
+        // Calcular pendiente de cobro (histórico global que no esté marcado como cobrado)
+        const pendingAmount = sales
+            .filter(sale => !sale.isPaid)
+            .reduce((total, sale) => total + Number(sale.total || 0), 0);
+            
+        document.getElementById('todaySales').textContent = AppUtil.formatCurrency(todaySalesAmount);
+        document.getElementById('todaySales').className = `stat-value ${todaySalesAmount > 0 ? 'text-secondary' : ''}`;
+        
+        document.getElementById('pendingCollection').textContent = AppUtil.formatCurrency(pendingAmount);
+        document.getElementById('pendingCollection').className = `stat-value ${pendingAmount > 0 ? 'text-accent' : ''}`;
+    }
+
+    async handleManualSync() {
+        // En un futuro se leerán de localStorage tras configurarse en "Configuración"
+        const token = localStorage.getItem('farmapp_github_token');
+        const gistId = localStorage.getItem('farmapp_gist_id');
+
+        if (!token || !gistId) {
+            AppUtil.showToast("Configura tu Token y Gist en Ajustes", "error");
+            window.location.href = 'ajustes.html';
+            return;
+        }
+
+        const btnSync = document.getElementById('btnSync');
+        if (btnSync) {
+            btnSync.style.animation = 'spin 1s linear infinite';
+            btnSync.querySelector('.material-icons-round').style.color = 'var(--accent)';
+        }
+
+        try {
+            AppUtil.showToast("Sincronizando con la nube...", "success");
+            const result = await SyncService.syncWithCloud(token, gistId);
+            
+            if (result.success) {
+                AppUtil.showToast("¡Datos Sincronizados!", "success");
+                if (document.getElementById('todaySales')) {
+                    this.loadDashboardData(); // Recargar datos locales
+                }
+            } else {
+                AppUtil.showToast("Error de Sync: " + result.error, "error");
+            }
+        } catch (e) {
+            AppUtil.showToast("Error de Sincronización.", "error");
+        } finally {
+            if (btnSync) {
+                btnSync.style.animation = 'none';
+                btnSync.querySelector('.material-icons-round').style.color = 'var(--text-main)';
+            }
+        }
+    }
+}
+
+// Inicializar la aplicación al cargar el DOM
+document.addEventListener('DOMContentLoaded', () => {
+    window.app = new DashboardApp();
+    
+    // Inyectar animación para la recarga en CSS de forma dinámica si no está
+    if (!document.getElementById('dynamicStyles')) {
+        const style = document.createElement('style');
+        style.id = 'dynamicStyles';
+        style.textContent = `
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(style);
+    }
+});
