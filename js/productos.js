@@ -188,14 +188,17 @@ class ProductsModule {
             const card = document.createElement('div');
             card.className = 'product-card';
             
+            const safeName = (prod.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const safeClave = (prod.clave || 'S/C').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
             const imgSrc = prod.image || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="%2394A3B8"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
 
             card.innerHTML = `
-                <img src="${imgSrc}" class="product-img" alt="${prod.name}">
+                <img src="${imgSrc}" class="product-img" alt="${safeName}">
                 <div class="product-info" style="width: 100%;">
                     <div style="display:flex; justify-content: space-between; align-items:flex-start;">
-                        <span class="product-title">${prod.name}</span>
-                        <span style="font-size: 0.7rem; color: var(--text-muted); background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">${prod.clave || 'S/C'}</span>
+                        <span class="product-title">${safeName}</span>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">${safeClave}</span>
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 5px; font-size: 0.75rem;">
