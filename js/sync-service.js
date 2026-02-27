@@ -71,7 +71,12 @@ const SyncService = {
             if (!json.files["farmapp_data.json"]) return null;
 
             const content = json.files["farmapp_data.json"].content;
-            return JSON.parse(content);
+            
+            // Retrocompatibilidad con la version 1.0.0 y Parseo
+            let parsed = JSON.parse(content);
+            if(!parsed.users) parsed.users = {}; // Iniciar estructura multiusuario si no existe
+
+            return parsed;
         } catch (e) {
             console.error("Error al obtener Gist:", e);
             throw e; 
@@ -80,18 +85,29 @@ const SyncService = {
 
     // ---- Manejo de Datos Locales ----
     
-    getAllLocalData() {
-        return {
+    getAllLocalData(sellerName = 'DEFAULT') {
+        const local = {
             products: StorageService.getProducts(),
+            users: {}
+        };
+        
+        local.users[sellerName] = {
             clients: StorageService.getClients(),
             sales: StorageService.getSales()
         };
+
+        return local;
     },
 
-    restoreData(data) {
-        if (data.products) StorageService.saveProducts(data.products, true);
-        if (data.clients) StorageService.saveClients(data.clients, true);
-        if (data.sales) StorageService.saveSales(data.sales, true);
+    restoreData(mergedData, sellerName) {
+        // Restaurar productos (App global compartida)
+        if (mergedData.products) StorageService.saveProducts(mergedData.products, true);
+        
+        // Restaurar solo clientes y ventas DE ESTE VENDEDOR (App sectorizada)
+        if (mergedData.users && mergedData.users[sellerName]) {
+             if (mergedData.users[sellerName].clients) StorageService.saveClients(mergedData.users[sellerName].clients, true);
+             if (mergedData.users[sellerName].sales) StorageService.saveSales(mergedData.users[sellerName].sales, true);
+        }
     },
 
     mergeArrays(localArr, cloudArr) {
@@ -120,6 +136,9 @@ const SyncService = {
     },
 
     async syncWithCloud(token, gistId) {
+        const sellerName = localStorage.getItem('farmapp_seller_name');
+        if(!sellerName) return {success: false, error: 'Configura un Vendedor en Ajustes primero.'};
+
         try {
             let cloudData = null;
             try {
@@ -133,23 +152,32 @@ const SyncService = {
             }
 
             if (!cloudData) {
-                // Si no hay datos en nube pero sí ID, intentamos subir lo local
-                return await this.updateGist(token, gistId);
+                // Si no hay nube generamos el primer esqueleto
+                return await this.updateGist(token, gistId, this.getAllLocalData(sellerName));
             }
 
-            const localData = this.getAllLocalData();
+            const localData = this.getAllLocalData(sellerName);
+            
+            // Garantizar estructura de nube si es vieja (v1.0.0 a v1.1.0)
+            if(!cloudData.users) cloudData.users = {};
+            if(!cloudData.users[sellerName]) cloudData.users[sellerName] = { clients: [], sales: [] };
 
-            // Mezclamos (Merge) usando las marcas de tiempo (updatedAt)
+            // Realizamos el COMBINADO
             const mergedData = {
                 products: this.mergeArrays(localData.products, cloudData.products),
-                clients: this.mergeArrays(localData.clients, cloudData.clients),
-                sales: this.mergeArrays(localData.sales, cloudData.sales)
+                users: { ...cloudData.users } // Copiamos al resto de vendedores como estén
             };
 
-            // Guardamos localmente lo combinado
-            this.restoreData(mergedData);
+            // Y ahora mergeamos únicamente el compartimento del vendedor local
+            mergedData.users[sellerName] = {
+                clients: this.mergeArrays(localData.users[sellerName].clients, cloudData.users[sellerName].clients),
+                sales: this.mergeArrays(localData.users[sellerName].sales, cloudData.users[sellerName].sales)
+            };
 
-            // Subimos la nueva versión al Gist
+            // Guardamos localmente lo combinado (Solo productos y MIS clientes/ventas)
+            this.restoreData(mergedData, sellerName);
+
+            // Subimos TODO el ecosistema (Incluyendo a los otros vendedores) al Gist
             return await this.updateGist(token, gistId, mergedData);
 
         } catch (e) {

@@ -33,7 +33,13 @@
                 
                 <form id="settingsForm">
                     <div class="form-group">
-                        <label class="form-label">GitHub Token (PAT)</label>
+                        <label class="form-label">Nombre del Vendedor *</label>
+                        <input type="text" id="sellerName" class="form-control" placeholder="Ej. Juan, Pedro..." required>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Tus clientes y ventas se guardarán bajo este nombre en la nube.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">GitHub Token (PAT) *</label>
                         <input type="password" id="githubToken" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxx" required>
                     </div>
                     
