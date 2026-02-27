@@ -136,6 +136,32 @@ const SyncService = {
         return Array.from(mergedMap.values());
     },
 
+    async wipeCloudCatalog(token, gistId) {
+        if (this.syncPromise) {
+            return { success: false, error: 'Sincronización ocupada, intenta de nuevo en unos segundos.' };
+        }
+
+        this.syncPromise = (async () => {
+            try {
+                let cloudData = await this.getGist(token, gistId);
+                if (!cloudData) cloudData = this.getAllLocalData();
+                
+                // Forzar borrado total de artículos remotos eludiendo la fusión (Merge)
+                cloudData.products = [];
+                
+                return await this.updateGist(token, gistId, cloudData);
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        })();
+
+        try {
+            return await this.syncPromise;
+        } finally {
+            this.syncPromise = null;
+        }
+    },
+
     async syncWithCloud(token, gistId) {
         if (this.syncPromise) {
             // En vez de lanzar un error, nos enganchamos ("cabalgamos") sobre la promesa que ya se está ejecutando

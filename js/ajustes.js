@@ -57,16 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const pass = prompt(`Vas a ELIMINAR LOS ${count} ARTÍCULOS de la base de datos de todos los vendedores. Escribe "PURGAR" en mayúsculas para confirmar.`);
             if (pass === 'PURGAR') {
-                 // Guardar un array vacío forzando la subida a Gist para pisar la nube
-                 StorageService.saveProducts([], false); 
-                 AppUtil.showToast('Catálogo purgado. Subiendo orden de borrado a GitHub...', 'success');
+                 const token = localStorage.getItem('farmapp_github_token');
+                 const gistId = localStorage.getItem('farmapp_gist_id');
                  
-                 // Disparar UI manual
-                 setTimeout(() => {
-                     if(window.app && window.app.handleManualSync) {
-                         window.app.handleManualSync();
+                 if(!token || !gistId) {
+                     AppUtil.showToast('Faltan credenciales de Administrador para Purgar la Nube.', 'error');
+                     return;
+                 }
+
+                 AppUtil.showToast('Enviando orden de purga a la Nube...', 'success');
+                 
+                 SyncService.wipeCloudCatalog(token, gistId).then(res => {
+                     if (res.success) {
+                         StorageService.saveProducts([], true); // Guardar catálogo vacío local
+                         AppUtil.showToast('Catálogo Global Purgado con Éxito.', 'success');
+                         
+                         // Notificar otras partes de la app para que repinten (ej. dashboard)
+                         window.dispatchEvent(new Event('farmapp_data_changed')); 
+                     } else {
+                         AppUtil.showToast('Error purgando nube: ' + res.error, 'error');
                      }
-                 }, 500);
+                 });
             }
         });
     }
