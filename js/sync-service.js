@@ -1,5 +1,5 @@
 const SyncService = {
-    isSyncing: false,
+    syncPromise: null,
     // ---- GitHub Gist API Wrappers ----
 
     async createGist(token) {
@@ -137,12 +137,23 @@ const SyncService = {
     },
 
     async syncWithCloud(token, gistId) {
+        if (this.syncPromise) {
+            // En vez de lanzar un error, nos enganchamos ("cabalgamos") sobre la promesa que ya se está ejecutando
+            // Así el usuario no ve errores molestos y la UI esperará a que el primer hilo termine felizmente.
+            return this.syncPromise;
+        }
+        this.syncPromise = this._syncWithCloudCore(token, gistId);
+        try {
+            return await this.syncPromise;
+        } finally {
+            this.syncPromise = null;
+        }
+    },
+
+    async _syncWithCloudCore(token, gistId) {
         // Usar Email como identificador de carpeta único para evitar fallos por nombres duplicados/erratas
         const sellerEmail = localStorage.getItem('farmapp_seller_email');
         if(!sellerEmail) return {success: false, error: 'Inicia sesión primero.'};
-
-        if (this.isSyncing) return { success: false, error: 'Ya hay una sincronización en curso. Espera unos segundos.' };
-        this.isSyncing = true;
 
         try {
             let cloudData = null;
@@ -187,8 +198,6 @@ const SyncService = {
 
         } catch (e) {
             return { success: false, error: e.message || 'Error de Sincronización Desconocido' };
-        } finally {
-            this.isSyncing = false;
         }
     }
 };
