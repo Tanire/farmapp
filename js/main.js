@@ -3,7 +3,7 @@
  */
 
 // --- CREDENCIALES GLOBALES EMBEBIDAS ---
-const GITHUB_TOKEN = "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";
+const GITHUB_TOKEN = "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";
 const GITHUB_GIST_ID = "559c83ec23a2993f5d5ebff9eb2685d7";
 // ---------------------------------------
 
