@@ -15,6 +15,11 @@ const StorageService = {
            value = value.map(item => ({...item, updatedAt: item.updatedAt || new Date().toISOString()}));
         }
         localStorage.setItem(`farmapp_${key}`, JSON.stringify(value));
+
+        // Auto-sincronizar cuando hay un cambio local
+        if (!forceUpdate) {
+            window.dispatchEvent(new Event('farmapp_data_changed'));
+        }
     },
 
     // --- Productos ---

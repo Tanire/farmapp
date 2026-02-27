@@ -35,6 +35,9 @@ class DashboardApp {
         if (document.getElementById('todaySales')) {
             this.loadDashboardData();
         }
+        
+        // Auto-sincronización silenciosa al abrir la app
+        this.autoSync();
     }
 
     initPWA() {
@@ -56,6 +59,11 @@ class DashboardApp {
         if (btnSync) {
             btnSync.addEventListener('click', () => this.handleManualSync());
         }
+
+        // Escuchar cambios locales para subirlos
+        window.addEventListener('farmapp_data_changed', () => {
+             this.autoSync();
+        });
     }
 
     loadDashboardData() {
@@ -110,6 +118,32 @@ class DashboardApp {
             }
         } catch (e) {
             AppUtil.showToast("Error de Sincronización.", "error");
+        } finally {
+            if (btnSync) {
+                btnSync.style.animation = 'none';
+                btnSync.querySelector('.material-icons-round').style.color = 'var(--text-main)';
+            }
+        }
+    }
+
+    async autoSync() {
+        const token = localStorage.getItem('farmapp_github_token');
+        const gistId = localStorage.getItem('farmapp_gist_id');
+        if (!token || !gistId) return;
+
+        const btnSync = document.getElementById('btnSync');
+        if (btnSync) {
+            btnSync.style.animation = 'spin 1s linear infinite';
+            btnSync.querySelector('.material-icons-round').style.color = 'var(--text-muted)';
+        }
+
+        try {
+            const result = await SyncService.syncWithCloud(token, gistId);
+            if (result.success && document.getElementById('todaySales')) {
+                this.loadDashboardData();
+            }
+        } catch (e) {
+            console.error("Auto Sync failed", e);
         } finally {
             if (btnSync) {
                 btnSync.style.animation = 'none';
