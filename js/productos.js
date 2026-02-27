@@ -9,6 +9,7 @@ class ProductsModule {
         this.form = document.getElementById('productForm');
         this.imgInput = document.getElementById('prodImage');
         this.imgPreview = document.getElementById('imgPreview');
+        this.searchInput = document.getElementById('searchProduct');
         
         // Data en vivo
         this.editingBase64Image = null;
@@ -38,6 +39,13 @@ class ProductsModule {
 
         // Submit Formulario
         this.form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+
+        // Buscador
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (e) => {
+                this.renderList(e.target.value);
+            });
+        }
     }
 
     openModal(prodData = null) {
@@ -169,22 +177,32 @@ class ProductsModule {
         this.renderList();
     }
 
-    renderList() {
+    renderList(searchTerm = '') {
         const products = StorageService.getProducts();
         this.listEl.innerHTML = '';
+        
+        let filteredProducts = products;
+        if (searchTerm.trim() !== '') {
+            const term = searchTerm.toLowerCase().trim();
+            // Buscar en Nombre o en Clave
+            filteredProducts = products.filter(p => 
+                (p.name || '').toLowerCase().includes(term) ||
+                (p.clave || '').toLowerCase().includes(term)
+            );
+        }
 
-        if (products.length === 0) {
+        if (filteredProducts.length === 0) {
             this.listEl.innerHTML = `
                 <div class="empty-state">
-                    <span class="material-icons-round" style="font-size: 64px; color: var(--border-color); margin-bottom: 15px;">inventory_2</span>
-                    <h3>No tienes productos</h3>
-                    <p style="margin-top: 5px;">Toca el botón + para añadir tu primer artículo de venta.</p>
+                    <span class="material-icons-round" style="font-size: 64px; color: var(--border-color); margin-bottom: 15px;">search_off</span>
+                    <h3>Ningún producto encontrado</h3>
+                    <p style="margin-top: 5px;">Carga productos o intenta buscar con otras palabras.</p>
                 </div>
             `;
             return;
         }
 
-        products.forEach(prod => {
+        filteredProducts.forEach(prod => {
             const card = document.createElement('div');
             card.className = 'product-card';
             
@@ -209,7 +227,7 @@ class ProductsModule {
                         <div style="color: var(--text-muted);">Promo FI: <strong style="color: var(--accent);">${AppUtil.formatCurrency(prod.precioFiPromoPuntos || 0)}</strong></div>
                     </div>
                     
-                    ${prod.descuento ? `<div style="font-size:0.75rem; margin-top:4px; color: var(--primary-light);">Desc: <strong>${prod.descuento}%</strong></div>` : ''}
+                    ${prod.descuento ? `<div style="font-size:0.75rem; margin-top:4px; color: var(--primary-light);">Desc: <strong>${prod.descuento.toString().includes('%') ? prod.descuento : prod.descuento + '%'}</strong></div>` : ''}
                 </div>
                 <button class="icon-btn edit-btn" style="color: var(--primary-light);">
                     <span class="material-icons-round">edit</span>

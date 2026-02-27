@@ -57,6 +57,7 @@
             line-height: 1.3;
             /* Limitar a 2 lineas */
             display: -webkit-box;
+            line-clamp: 2;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;  
             overflow: hidden;
@@ -197,9 +198,9 @@
     <header class="app-header">
         <div class="header-content">
             <img src="https://content.farmasi.com/js/ES-20260225134849-3cb46266-6e1a-49d0-a00e-e0e7539ada9d/_next/static/media/logoText.f15a2acb.svg" alt="Farmasi Logo" style="height: 22px; filter: brightness(0) invert(1);">
-            <button class="icon-btn" aria-label="Buscar">
-                <span class="material-icons-round">search</span>
-            </button>
+            <div class="search-box" style="flex-grow:1; margin-left: 15px;">
+                <input type="text" id="searchProduct" class="form-control" placeholder="Buscar producto..." style="padding: 8px 12px; height: 35px;">
+            </div>
         </div>
     </header>
 
