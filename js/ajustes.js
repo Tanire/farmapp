@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminTokenInput = document.getElementById('adminToken');
     const adminGistInput = document.getElementById('adminGist');
     const btnSaveAdmin = document.getElementById('btnSaveAdmin');
+    const btnWipeCatalog = document.getElementById('btnWipeCatalog');
 
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
@@ -41,6 +42,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 AppUtil.showToast('Credenciales de Administrador Guardadas Secundariamente.', 'success');
             } else {
                 AppUtil.showToast('Pon un Token y Gist válidos.', 'error');
+            }
+        });
+    }
+
+    // Purgar Catálogo (Admin)
+    if (btnWipeCatalog) {
+        btnWipeCatalog.addEventListener('click', () => {
+            const count = StorageService.getProducts().length;
+            if (count === 0) {
+                 AppUtil.showToast('El catálogo ya está vacío.', 'error');
+                 return;
+            }
+            
+            const pass = prompt(`Vas a ELIMINAR LOS ${count} ARTÍCULOS de la base de datos de todos los vendedores. Escribe "PURGAR" en mayúsculas para confirmar.`);
+            if (pass === 'PURGAR') {
+                 // Guardar un array vacío forzando la subida a Gist para pisar la nube
+                 StorageService.saveProducts([], false); 
+                 AppUtil.showToast('Catálogo purgado. Subiendo orden de borrado a GitHub...', 'success');
+                 
+                 // Disparar UI manual
+                 setTimeout(() => {
+                     if(window.app && window.app.handleManualSync) {
+                         window.app.handleManualSync();
+                     }
+                 }, 500);
             }
         });
     }

@@ -66,9 +66,16 @@
                         <input type="text" id="adminGist" class="form-control" placeholder="ID secreto del Gist" value="559c83ec23a2993f5d5ebff9eb2685d7">
                         <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Déjalo por defecto a menos que crees uno nuevo.</p>
                     </div>
-                    <button type="button" id="btnSaveAdmin" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--accent), #d97706); border: none; font-weight: bold;">
+                    <button type="button" id="btnSaveAdmin" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--accent), #d97706); border: none; font-weight: bold; margin-bottom: 20px;">
                         Guardar Credenciales Seguras
                     </button>
+
+                    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <p style="font-size: 0.8rem; color: var(--danger); margin-bottom: 10px; font-weight: bold;">Zona de Peligro Global</p>
+                        <button type="button" id="btnWipeCatalog" class="btn" style="width: 100%; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);">
+                            <span class="material-icons-round">delete_sweep</span> Purgar Todo el Catálogo
+                        </button>
+                    </div>
                 </div>
             </details>
 
