@@ -2,6 +2,8 @@
  * Main App Script - FarmApp
  */
 
+window.APP_VERSION = "v1.00.23";
+
 const AppUtil = {
     showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
@@ -284,6 +286,17 @@ class DashboardApp {
         }
 
         try {
+            // Sincronización silenciosa de versión
+            try {
+                const verRes = await fetch('version.json?t=' + new Date().getTime());
+                if (verRes.ok) {
+                    const verData = await verRes.json();
+                    if (verData.version && verData.version !== window.APP_VERSION) {
+                        AppUtil.showToast(`Nueva revisión disponible (${verData.version}). Ve a Ajustes.`, "success");
+                    }
+                }
+            } catch(e) { console.warn("No se pudo comprobar la versión"); }
+
             const result = await SyncService.syncWithCloud(token, gistId);
             if (result.success && document.getElementById('todaySales')) {
                 this.loadDashboardData();

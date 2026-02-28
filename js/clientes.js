@@ -30,6 +30,12 @@ class ClientsModule {
                 this.openClientModal(client);
             }
         });
+        
+        // Eliminar Cliente
+        const btnDelete = document.getElementById('btnDeleteClient');
+        if (btnDelete) {
+            btnDelete.addEventListener('click', () => this.deleteCurrentClient());
+        }
 
         // Click fuera para cerrar modales
         this.clientModal.addEventListener('click', (e) => {
@@ -53,32 +59,64 @@ class ClientsModule {
         if (clientData) {
             document.getElementById('modalTitle').textContent = 'Editar Cliente';
             document.getElementById('clientId').value = clientData.id;
+            document.getElementById('cliClave').value = clientData.clave || '';
             document.getElementById('cliName').value = clientData.name;
             document.getElementById('cliPhone').value = clientData.phone || '';
             document.getElementById('cliAddress').value = clientData.address || '';
         } else {
             document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
+            document.getElementById('cliClave').value = this.generateNextClave();
         }
 
         this.clientModal.classList.add('active');
+    }
+
+    generateNextClave() {
+        const clients = StorageService.getClients();
+        // Buscar todas las claves que empiecen por CLI- y extraer el número
+        let maxNum = 0;
+        clients.forEach(c => {
+            if (c.clave && c.clave.startsWith('CLI-')) {
+                const num = parseInt(c.clave.replace('CLI-', ''), 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+        });
+        // Si no hay ninguno, maxNum es 0. Retornar CLI-001, etc.
+        const nextNum = maxNum + 1;
+        return `CLI-${String(nextNum).padStart(3, '0')}`;
     }
 
     handleFormSubmit(e) {
         e.preventDefault();
 
         const id = document.getElementById('clientId').value;
-        const name = document.getElementById('cliName').value;
-        const phone = document.getElementById('cliPhone').value;
-        const address = document.getElementById('cliAddress').value;
+        const name = document.getElementById('cliName').value.trim();
+        const phone = document.getElementById('cliPhone').value.trim();
+        const address = document.getElementById('cliAddress').value.trim();
+        
+        let clave = document.getElementById('cliClave').value.trim();
+        if(!clave) clave = this.generateNextClave();
+
+        const clients = StorageService.getClients();
+
+        // Evitar duplicados por nombre exacto o teléfono exacto (si lo han puesto)
+        const isDuplicate = clients.some(c => 
+            c.id !== id && 
+            (c.name.toLowerCase() === name.toLowerCase() || (phone !== '' && c.phone === phone))
+        );
+
+        if (isDuplicate) {
+            AppUtil.showToast("Este cliente ya existe (mismo nombre o teléfono)", "error");
+            return;
+        }
 
         const newClient = {
             id: id || undefined,
-            name, phone, address,
+            clave, name, phone, address,
             updatedAt: new Date().toISOString()
         };
 
         if (id) {
-            const clients = StorageService.getClients();
             const index = clients.findIndex(c => c.id === id);
             if (index > -1) {
                 clients[index] = newClient;
@@ -91,6 +129,27 @@ class ClientsModule {
         }
 
         this.clientModal.classList.remove('active');
+        this.renderList();
+    }
+
+    deleteCurrentClient() {
+        if (!this.currentProfileId) return;
+        
+        // Comprobar si tiene historial de ventas
+        const { sales } = this.getDebtData(this.currentProfileId);
+        if (sales.length > 0) {
+            const cnf = confirm(`Este cliente tiene ${sales.length} ventas en su historial. ¿Estás SEGURO de que deseas borrarlo? Toda estadística relacionada quedará sin asignar.`);
+            if(!cnf) return;
+        } else {
+            if(!confirm("¿Eliminar cliente definitivamente?")) return;
+        }
+
+        const clients = StorageService.getClients();
+        const newClients = clients.filter(c => c.id !== this.currentProfileId);
+        StorageService.saveClients(newClients);
+        
+        AppUtil.showToast("Cliente eliminado", "success");
+        this.profileModal.classList.remove('active');
         this.renderList();
     }
 
@@ -175,13 +234,15 @@ class ClientsModule {
             card.className = 'client-card';
             
             const initials = client.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            
+            const claveDisplay = client.clave ? `<span style="font-size: 0.65rem; background: var(--bg-input); padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${client.clave}</span>` : '';
 
             card.innerHTML = `
                 <div class="client-header">
                     <div class="client-info">
                         <div class="client-avatar">${initials}</div>
                         <div class="client-details">
-                            <h3>${client.name}</h3>
+                            <h3 style="display:flex; align-items:center;">${client.name} ${claveDisplay}</h3>
                             <p>${client.phone || 'Sin télefono'}</p>
                         </div>
                     </div>
