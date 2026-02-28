@@ -149,6 +149,13 @@ const SyncService = {
                 // Forzar borrado total de artículos remotos eludiendo la fusión (Merge)
                 cloudData.products = [];
                 
+                // Sello de defunción global (Timestamp milisegundos)
+                const wipeTime = new Date().getTime();
+                cloudData.catalogWipedAt = wipeTime;
+                
+                // El dispositivo que manda a purgar, dice "yo ya lo he hecho" en su ficha local
+                localStorage.setItem('farmapp_last_wiped_at', wipeTime.toString());
+                
                 return await this.updateGist(token, gistId, cloudData);
             } catch (e) {
                 return { success: false, error: e.message };
@@ -196,6 +203,19 @@ const SyncService = {
             if (!cloudData) {
                 // Si no hay nube generamos el primer esqueleto
                 return await this.updateGist(token, gistId, this.getAllLocalData(sellerEmail));
+            }
+
+            // --- PROTECCIÓN HIGHLANDER (TOMBSTONE GLOBAL DE CATÁLOGO) ---
+            const localWipedAt = parseInt(localStorage.getItem('farmapp_last_wiped_at') || '0', 10);
+            const cloudWipedAt = cloudData.catalogWipedAt ? parseInt(cloudData.catalogWipedAt, 10) : 0;
+            
+            if (cloudWipedAt > localWipedAt) {
+                // Alguien purgó la nube globalmente DESPUÉS de nuestra última purga/sincronización local
+                // Significa que las instrucciones del sistema son DESTRUIR nuestros artículos para acatar.
+                StorageService.saveProducts([], true); // Silencioso
+                console.warn("Se ha detectado una orden de Purga Global en Nube. Vaciando catálogo local en este terminal...");
+                localStorage.setItem('farmapp_last_wiped_at', cloudWipedAt.toString());
+                window.dispatchEvent(new Event('farmapp_data_changed')); // Evento visual para redibujar UI vacía al fondo
             }
 
             const localData = this.getAllLocalData(sellerEmail);

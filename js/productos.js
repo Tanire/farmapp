@@ -142,6 +142,17 @@ class ProductsModule {
         const precioClientePromo = parseFloat(document.getElementById('prodPromo').value) || 0;
         const precioFiPromoPuntos = parseFloat(document.getElementById('prodPromoPts').value) || 0;
 
+        // -- VALIDACION: CLAVE UNICA -- 
+        // Si hay clave, comprobar que no esté pillada por otro ID distinto
+        if (clave !== '') {
+            const currentProds = StorageService.getProducts();
+            const exists = currentProds.some(p => p.clave === clave && p.id !== id);
+            if (exists) {
+                AppUtil.showToast(`Error: La clave "${clave}" ya existe en otro producto.`, "error");
+                return; // Cortar el guardado
+            }
+        }
+
         const newProd = {
             id: id || 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
             clave,
