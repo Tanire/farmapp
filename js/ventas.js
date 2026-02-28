@@ -24,8 +24,13 @@ class SalesModule {
         this.cart = []; // { productData, qty, subtotal }
         
         this.viewingSaleId = null;
+        
+        // Estado de Filtros
+        this.currentStatusFilter = 'all'; 
+        this.currentMonthFilter = 'all';
 
         this.bindEvents();
+        this.populateMonthFilter();
         this.renderList();
         this.populateSelects();
     }
@@ -56,6 +61,51 @@ class SalesModule {
 
         // Toggle Estado de Pago (Detalle)
         document.getElementById('btnTogglePaid').addEventListener('click', () => this.toggleSalePaymentStatus());
+
+        // Manejo de Filtros
+        const filterPills = document.querySelectorAll('.filter-pill');
+        filterPills.forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                filterPills.forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentStatusFilter = e.target.dataset.filter;
+                this.renderList();
+            });
+        });
+
+        const filterMonthSelect = document.getElementById('filterMonthSelect');
+        if (filterMonthSelect) {
+            filterMonthSelect.addEventListener('change', (e) => {
+                this.currentMonthFilter = e.target.value;
+                this.renderList();
+            });
+        }
+    }
+
+    populateMonthFilter() {
+        const sales = StorageService.getSales();
+        const select = document.getElementById('filterMonthSelect');
+        if(!select) return;
+
+        const months = new Set();
+        sales.forEach(s => {
+            const d = new Date(s.date);
+            months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+        });
+
+        const sortedMonths = Array.from(months).sort((a,b) => b.localeCompare(a));
+        
+        // Mantener opción 'all'
+        select.innerHTML = '<option value="all">Todos los meses</option>';
+        
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        sortedMonths.forEach(m => {
+            const [year, mo] = m.split('-');
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = `${monthNames[parseInt(mo)-1]} ${year}`;
+            select.appendChild(opt);
+        });
     }
 
     populateSelects() {
@@ -111,6 +161,12 @@ class SalesModule {
                 subtotal: product.salePrice,
                 costSubtotal: product.costPrice
             });
+        }
+
+        if (existing && existing.qty > product.stock) {
+             AppUtil.showToast(`Has alcanzado el límite de Stock local (Quedan ${product.stock})`, "error");
+        } else if (!existing && 1 > product.stock) {
+             AppUtil.showToast(`Aviso: Vendiendo producto sin Stock registrado`, "error");
         }
 
         this.productSelect.value = ''; // Reset select
@@ -202,9 +258,30 @@ class SalesModule {
         };
 
         StorageService.addSale(newSale);
-        AppUtil.showToast("Venta registrada correctamente", "success");
+        
+        // DESCONTAR INVENTARIO
+        const allProducts = StorageService.getProducts();
+        let productsChanged = false;
+        
+        this.cart.forEach(cartItem => {
+            const pIndex = allProducts.findIndex(p => p.id === cartItem.product.id);
+            if(pIndex > -1) {
+                // Retrocompatibilidad con stock nulo
+                let currentStock = allProducts[pIndex].stock || 0;
+                allProducts[pIndex].stock = currentStock - cartItem.qty;
+                allProducts[pIndex].updatedAt = new Date().toISOString();
+                productsChanged = true;
+            }
+        });
+        
+        if (productsChanged) {
+            StorageService.saveProducts(allProducts, false); // Lanzará evento para nube
+        }
+
+        AppUtil.showToast("Venta registrada y stock descontado", "success");
         
         this.fsModal.classList.remove('active');
+        this.populateMonthFilter(); // Refresh months si es nueva
         this.renderList();
     }
 
@@ -268,16 +345,35 @@ class SalesModule {
     }
 
     renderList() {
-        const sales = StorageService.getSales().sort((a,b) => new Date(b.date) - new Date(a.date)); // Mas nuevas primero
+        let sales = StorageService.getSales();
         const clients = StorageService.getClients();
+        
+        // Aplicar Filtro de Mes
+        if (this.currentMonthFilter !== 'all') {
+            sales = sales.filter(s => {
+                 const d = new Date(s.date);
+                 const mStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                 return mStr === this.currentMonthFilter;
+            });
+        }
+        
+        // Aplicar Filtro de Estado
+        if (this.currentStatusFilter === 'paid') {
+            sales = sales.filter(s => s.isPaid);
+        } else if (this.currentStatusFilter === 'pending') {
+            sales = sales.filter(s => !s.isPaid);
+        }
+
+        sales = sales.sort((a,b) => new Date(b.date) - new Date(a.date)); // Mas nuevas primero
+
         this.listEl.innerHTML = '';
 
         if (sales.length === 0) {
             this.listEl.innerHTML = `
                 <div class="empty-state">
                     <span class="material-icons-round" style="font-size: 64px; color: var(--border-color); margin-bottom: 15px;">receipt_long</span>
-                    <h3>No hay ventas</h3>
-                    <p style="margin-top: 5px;">Registra tu primera venta tocando el carrito.</p>
+                    <h3>No hay resultados</h3>
+                    <p style="margin-top: 5px;">No se encontraron ventas para estos filtros.</p>
                 </div>
             `;
             return;

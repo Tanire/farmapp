@@ -67,6 +67,7 @@ class ProductsModule {
             document.getElementById('prodDesc').value = prodData.descuento || '';
             document.getElementById('prodPromo').value = prodData.precioClientePromo || '';
             document.getElementById('prodPromoPts').value = prodData.precioFiPromoPuntos || '';
+            document.getElementById('prodStock').value = prodData.stock !== undefined ? prodData.stock : 0;
             
             if (prodData.image) {
                 this.imgPreview.src = prodData.image;
@@ -141,6 +142,7 @@ class ProductsModule {
         const descuento = document.getElementById('prodDesc').value.trim();
         const precioClientePromo = parseFloat(document.getElementById('prodPromo').value) || 0;
         const precioFiPromoPuntos = parseFloat(document.getElementById('prodPromoPts').value) || 0;
+        const stock = parseInt(document.getElementById('prodStock').value) || 0;
 
         // -- VALIDACION: CLAVE UNICA -- 
         // Si hay clave, comprobar que no esté pillada por otro ID distinto
@@ -162,6 +164,7 @@ class ProductsModule {
             descuento,
             precioClientePromo,
             precioFiPromoPuntos,
+            stock,
             description: '',
             costPrice: 0, // deprecado pero conservado por seguridad
             salePrice: precioCatalogo, // Mantener compatibilidad con ventas si es necesario
@@ -238,7 +241,10 @@ class ProductsModule {
                         <div style="color: var(--text-muted);">Promo FI: <strong style="color: var(--accent);">${AppUtil.formatCurrency(prod.precioFiPromoPuntos || 0)}</strong></div>
                     </div>
                     
-                    ${prod.descuento ? `<div style="font-size:0.75rem; margin-top:4px; color: var(--primary-light);">Desc: <strong>${prod.descuento.toString().includes('%') ? prod.descuento : prod.descuento + '%'}</strong></div>` : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size: 0.8rem;">
+                        ${prod.descuento ? `<div style="color: var(--primary-light);">Desc: <strong>${prod.descuento.toString().includes('%') ? prod.descuento : prod.descuento + '%'}</strong></div>` : '<div></div>'}
+                        <div style="background: ${prod.stock <= 0 ? 'var(--danger)' : 'var(--bg-main)'}; color: ${prod.stock <= 0 ? 'white' : 'var(--text-main)'}; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Stock: ${prod.stock || 0}</div>
+                    </div>
                 </div>
                 <button class="icon-btn edit-btn" style="color: var(--primary-light);">
                     <span class="material-icons-round">edit</span>
