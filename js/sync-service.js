@@ -215,7 +215,11 @@ const SyncService = {
                 StorageService.saveProducts([], true); // Silencioso
                 console.warn("Se ha detectado una orden de Purga Global en Nube. Vaciando catálogo local en este terminal...");
                 localStorage.setItem('farmapp_last_wiped_at', cloudWipedAt.toString());
-                window.dispatchEvent(new Event('farmapp_data_changed')); // Evento visual para redibujar UI vacía al fondo
+                
+                // Refrescar UI si estamos en productos.html
+                if (window.productsApp) {
+                    window.productsApp.renderList();
+                }
             }
 
             const localData = this.getAllLocalData(sellerEmail);
@@ -226,6 +230,7 @@ const SyncService = {
 
             // Realizamos el COMBINADO
             const mergedData = {
+                ...cloudData, // IMPORTANTE: Preservar tombstones u otras propiedades raíz para que no se borre el aviso de Purga
                 products: this.mergeArrays(localData.products, cloudData.products),
                 users: { ...cloudData.users } // Copiamos al resto de vendedores como estén
             };
