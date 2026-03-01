@@ -230,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
              const descuento = cleanTextOrNum(cols[4]);
              const precioClientePromo = cleanNum(cols[5]);
              const precioFiPromoPuntos = cleanNum(cols[6]);
+             const imageUrl = cols[7] ? cols[7].trim() : '';
 
              // Ignorar cabeceras si las hay (ej. si la primera fila dice "NOMBRE", clave no debe estar vacía)
              if (clave && name && clave.toLowerCase() !== "clave") {
@@ -249,13 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
                        costPrice: 0, // Campos antiguos para evitar romper compras pasadas (Compatibilidad)
                        salePrice: precioCatalogo, 
                        stock: 0,
-                       image: '',
+                       image: imageUrl.startsWith('http') ? imageUrl : '',
                        updatedAt: new Date().toISOString()
                   };
 
                   if (existsIndex >= 0) {
                        // Si la clave ya existe, ACTUALIZAMOS LOS PRECIOS (útil para cuando pasan un CSV nuevo con tarifas actualizadas)
-                       currentProducts[existsIndex] = {...currentProducts[existsIndex], ...newProduct, id: currentProducts[existsIndex].id, updatedAt: new Date().toISOString() }; // Mantener ID original viejo
+                       // Mantenemos la imagen antigua si el nuevo xlsx no trae una URL, para no borrar la foto preexistente Base64 o URL.
+                       const existingImage = currentProducts[existsIndex].image;
+                       const finalImg = (imageUrl.startsWith('http')) ? imageUrl : existingImage;
+                       
+                       currentProducts[existsIndex] = {...currentProducts[existsIndex], ...newProduct, image: finalImg, id: currentProducts[existsIndex].id, updatedAt: new Date().toISOString() }; // Mantener ID original viejo
                        importedCount++;
                   } else {
                        // Si es nuevo, se inserta

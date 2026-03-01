@@ -91,6 +91,8 @@ class ProductsModule {
         this.imgPreview.src = '';
         this.editingBase64Image = null;
         document.getElementById('prodId').value = '';
+        const urlInput = document.getElementById('prodImageUrl');
+        if (urlInput) urlInput.value = '';
 
         if (prodData) {
             document.getElementById('modalTitle').textContent = 'Editar Producto';
@@ -106,9 +108,15 @@ class ProductsModule {
             document.getElementById('prodStock').value = prodData.stock !== undefined ? prodData.stock : 0;
             
             if (prodData.image) {
-                this.imgPreview.src = prodData.image;
-                this.imgPreview.style.display = 'block';
-                this.editingBase64Image = prodData.image;
+                if (prodData.image.startsWith('http')) {
+                    if (urlInput) urlInput.value = prodData.image;
+                    this.imgPreview.src = prodData.image;
+                    this.imgPreview.style.display = 'block';
+                } else {
+                    this.imgPreview.src = prodData.image;
+                    this.imgPreview.style.display = 'block';
+                    this.editingBase64Image = prodData.image;
+                }
             }
         } else {
             document.getElementById('modalTitle').textContent = 'Nuevo Producto';
@@ -160,6 +168,10 @@ class ProductsModule {
                 this.imgPreview.src = dataUrl;
                 this.imgPreview.style.display = 'block';
                 this.editingBase64Image = dataUrl;
+                
+                // Si el usuario sube un archivo local, limpiar el input de URL online para no confundir al motor
+                const urlInput = document.getElementById('prodImageUrl');
+                if (urlInput) urlInput.value = '';
             };
             img.src = event.target.result;
         };
@@ -191,6 +203,17 @@ class ProductsModule {
             }
         }
 
+        // --- MANEJO DE IMAGEN PRIORIZANDO URL ---
+        const urlInputEl = document.getElementById('prodImageUrl');
+        const imageUrlInput = (urlInputEl && urlInputEl.value) ? urlInputEl.value.trim() : '';
+        
+        // Asignación final de imagen: Prevalece el texto de Farmasi Online sobre la Base64 generada, 
+        // a no ser que el string de URL esté vacío (porque el usuario no pegó nada o subió archivo físico).
+        let finalImage = this.editingBase64Image;
+        if (imageUrlInput.startsWith('http')) {
+             finalImage = imageUrlInput;
+        }
+
         const newProd = {
             id: id || 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
             clave,
@@ -204,7 +227,7 @@ class ProductsModule {
             description: '',
             costPrice: 0, // deprecado pero conservado por seguridad
             salePrice: precioCatalogo, // Mantener compatibilidad con ventas si es necesario
-            image: this.editingBase64Image,
+            image: finalImage,
             updatedAt: new Date().toISOString()
         };
 
