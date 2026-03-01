@@ -33,20 +33,15 @@
                 
                 <form id="settingsForm">
                     <div class="form-group">
-                        <label class="form-label">Nombre del Vendedor *</label>
-                        <input type="text" id="sellerName" class="form-control" placeholder="Ej. Juan, Pedro..." required>
-                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Tus clientes y ventas se guardarán bajo este nombre en la nube.</p>
+                        <label class="form-label">Nombre del Vendedor</label>
+                        <input type="text" id="sellerName" class="form-control" style="background: var(--bg-body); color: var(--text-muted); border-color: transparent;" readonly>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Tu Correo Electrónico *</label>
-                        <input type="email" id="sellerEmail" class="form-control" placeholder="juan@ejemplo.com" required>
-                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Este es el identificador único con el que se guardan tus clientes.</p>
+                        <label class="form-label">Tu Correo Electrónico</label>
+                        <input type="email" id="sellerEmail" class="form-control" style="background: var(--bg-body); color: var(--text-muted); border-color: transparent;" readonly>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;"><span class="material-icons-round" style="font-size: 12px; vertical-align: middle;">lock</span> Tu identidad está sellada. Para cambiar de vendedor, usa 'Borrar Datos Locales' al final de la página.</p>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                        <span class="material-icons-round">save</span> Guardar Datos
-                    </button>
                 </form>
             </div>
 
@@ -132,24 +127,13 @@
                 </button>
             </div>
 
-            <div style="background: rgba(220, 38, 38, 0.1); border-radius: var(--radius-md); padding: 20px; border: 1px solid rgba(220, 38, 38, 0.2); margin-bottom: 80px;">
-                <h3 class="section-title" style="color: var(--accent); margin-top: 0;">Zona Peligrosa</h3>
-                 <button id="btnCreateGist" class="action-card" style="border: none; cursor: pointer; justify-content: flex-start; width: 100%; text-align: left;">
-                    <span class="material-icons-round" style="color: var(--secondary);">cloud_upload</span>
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: 600;">Inicializar Nube (Crear Gist)</span>
-                        <span class="text-muted" style="font-size: 0.75rem;">Sube todos los datos locales actuales a un nuevo repositorio Gist.</span>
-                    </div>
-                </button>
-            </div>
-            
             <h2 class="section-title mt-4">Gestión de Datos Locales</h2>
-            <div class="action-grid" style="grid-template-columns: 1fr;">
+            <div class="action-grid" style="grid-template-columns: 1fr; margin-bottom: 80px;">
                  <button id="btnWipeData" class="action-card" style="border: none; cursor: pointer; justify-content: flex-start; width: 100%; text-align: left; background-color: rgba(239, 68, 68, 0.1);">
                     <span class="material-icons-round" style="color: var(--danger);">delete_forever</span>
                     <div style="display: flex; flex-direction: column; color: var(--danger);">
                         <span style="font-weight: 600;">Borrar Datos Locales</span>
-                        <span style="font-size: 0.75rem;">Elimina toda la información de este dispositivo permanentemente.</span>
+                        <span style="font-size: 0.75rem;">Elimina tu sesión y toda la información de este dispositivo permanentemente.</span>
                     </div>
                 </button>
             </div>
