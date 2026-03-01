@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Elementos CSV
     const btnImportCSV = document.getElementById('btnImportCSV');
+    const btnExportCSV = document.getElementById('btnExportCSV');
     const csvFileInput = document.getElementById('csvFileInput');
 
     // Elementos Administrador Nube
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const localAppVersionDisplay = document.getElementById('localAppVersion');
     const cloudAppVersionDisplay = document.getElementById('cloudAppVersion');
     const btnForceUpdate = document.getElementById('btnForceUpdate');
-    const CURRENT_LOCAL_VERSION = "v1.01.02"; // VARIABLE VIVA DE ACTUALIZACION DE APP
+    const CURRENT_LOCAL_VERSION = "v1.01.03"; // VARIABLE VIVA DE ACTUALIZACION DE APP
 
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
@@ -188,6 +189,57 @@ document.addEventListener('DOMContentLoaded', () => {
              
              // Resetear el input por si sube el mismo archivo luego
              csvFileInput.value = '';
+        });
+    }
+
+    // ---- EXPORTADOR CSV ----
+    if (btnExportCSV) {
+        btnExportCSV.addEventListener('click', () => {
+             const products = StorageService.getProducts();
+             if (products.length === 0) {
+                 AppUtil.showToast('Tu catálogo está vacío.', 'error');
+                 return;
+             }
+
+             // Generar Cabeceras Clave, Nombre, Precio Catalogo, Precio Fi, Descuento, Precio Proveedor Promo, Precio FI Puntos Promo, Imagen, Categoria, Descripcion, Ingredientes
+             let csvContent = "CLAVE;NOMBRE;PRECIO_CATALOGO;PRECIO_FI;DESCUENTO;PRECIO_CLIENTE_PROMO;PRECIO_FI_PUNTOS;URL_IMAGEN;CATEGORIA;DESCRIPCION;INGREDIENTES\n";
+             
+             products.forEach(p => {
+                 const safeImage = (p.image && p.image.startsWith('http')) ? p.image : '';
+                 const row = [
+                     // Evitamos comillas si no son estrictamente necesarias, pero limpiamos punto y coma por si acaso 
+                     (p.clave || ''),
+                     (p.name || '').replace(/;/g, ','),
+                     (p.precioCatalogo || 0),
+                     (p.precioFi || 0),
+                     (p.descuento || ''),
+                     (p.precioClientePromo || 0),
+                     (p.precioFiPromoPuntos || 0),
+                     safeImage,
+                     (p.categoria || '').replace(/;/g, ','),
+                     (p.description || '').replace(/\r?\n|\r/g, ' ').replace(/;/g, ','),
+                     (p.componentes || '').replace(/\r?\n|\r/g, ' ').replace(/;/g, ',')
+                 ];
+                 csvContent += row.join(';') + "\n";
+             });
+
+             // Crear un Blob y forzar descarga
+             const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+             const url = URL.createObjectURL(blob);
+             
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `FarmApp_Catalogo_${new Date().toISOString().split('T')[0]}.csv`;
+             document.body.appendChild(a);
+             a.click();
+             
+             // Limpieza
+             setTimeout(() => {
+                 document.body.removeChild(a);
+                 window.URL.revokeObjectURL(url);
+             }, 100);
+             
+             AppUtil.showToast('Catálogo Exportado.', 'success');
         });
     }
 

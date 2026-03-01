@@ -16,9 +16,11 @@ class ProductsModule {
         
         // Data en vivo
         this.editingBase64Image = null;
+        this.currentCategoryFilter = 'Todas';
 
         this.applySecurityUI();
         this.bindEvents();
+        this.renderCategoryFilters();
         this.renderList();
     }
 
@@ -108,6 +110,7 @@ class ProductsModule {
             document.getElementById('prodId').value = prodData.id;
             document.getElementById('prodClave').value = prodData.clave || '';
             document.getElementById('prodName').value = prodData.name || '';
+            document.getElementById('prodCatLabel').value = prodData.categoria || '';
             
             document.getElementById('prodCat').value = prodData.precioCatalogo || '';
             document.getElementById('prodFi').value = prodData.precioFi || '';
@@ -229,6 +232,7 @@ class ProductsModule {
         const id = document.getElementById('prodId').value;
         const clave = document.getElementById('prodClave').value.trim().toUpperCase();
         const name = document.getElementById('prodName').value.trim();
+        const categoria = (document.getElementById('prodCatLabel').value || '').trim();
         
         const precioCatalogo = parseFloat(document.getElementById('prodCat').value) || 0;
         const precioFi = parseFloat(document.getElementById('prodFi').value) || 0;
@@ -266,6 +270,7 @@ class ProductsModule {
             id: id || 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
             clave,
             name,
+            categoria,
             precioCatalogo,
             precioFi,
             descuento,
@@ -296,7 +301,53 @@ class ProductsModule {
         }
 
         this.closeModal();
+        this.renderCategoryFilters(); // Refrescar por si hemos creado una categoria nueva
         this.renderList();
+    }
+
+    renderCategoryFilters() {
+        // En Modo Cliente también le permitimos filtrar
+        const products = StorageService.getProducts();
+        
+        // Extraer categorías únicas
+        let categoriesSet = new Set();
+        products.forEach(p => {
+             if(p.categoria && p.categoria.trim() !== '') {
+                 // Standarizar a Title Case por estética (ej. CRema -> Crema)
+                 let stdCat = p.categoria.trim().charAt(0).toUpperCase() + p.categoria.trim().slice(1).toLowerCase();
+                 categoriesSet.add(stdCat);
+             }
+        });
+
+        // Convertir a Array y ordenar
+        let categories = Array.from(categoriesSet).sort();
+        
+        const filterContainer = document.getElementById('categoryFilters');
+        filterContainer.innerHTML = '';
+        
+        // Píldora "Todas"
+        const btnAll = document.createElement('div');
+        btnAll.className = `filter-pill ${this.currentCategoryFilter === 'Todas' ? 'active' : ''}`;
+        btnAll.textContent = 'Todas';
+        btnAll.addEventListener('click', () => {
+             this.currentCategoryFilter = 'Todas';
+             this.renderCategoryFilters();
+             this.renderList(this.searchInput ? this.searchInput.value : '');
+        });
+        filterContainer.appendChild(btnAll);
+
+        // Pildoras de Categorias
+        categories.forEach(cat => {
+            const btn = document.createElement('div');
+            btn.className = `filter-pill ${this.currentCategoryFilter === cat ? 'active' : ''}`;
+            btn.textContent = cat;
+            btn.addEventListener('click', () => {
+                 this.currentCategoryFilter = cat;
+                 this.renderCategoryFilters();
+                 this.renderList(this.searchInput ? this.searchInput.value : '');
+            });
+            filterContainer.appendChild(btn);
+        });
     }
 
     renderList(searchTerm = '') {
@@ -304,13 +355,23 @@ class ProductsModule {
         this.listEl.innerHTML = '';
         
         let filteredProducts = products;
+        
+        // Filtrar por texto
         if (searchTerm.trim() !== '') {
             const term = searchTerm.toLowerCase().trim();
-            // Buscar en Nombre o en Clave
-            filteredProducts = products.filter(p => 
+            filteredProducts = filteredProducts.filter(p => 
                 (p.name || '').toLowerCase().includes(term) ||
                 (p.clave || '').toLowerCase().includes(term)
             );
+        }
+
+        // Filtrar por Categoria
+        if (this.currentCategoryFilter !== 'Todas') {
+            filteredProducts = filteredProducts.filter(p => {
+                if(!p.categoria) return false;
+                const pCatStr = p.categoria.trim().charAt(0).toUpperCase() + p.categoria.trim().slice(1).toLowerCase();
+                return pCatStr === this.currentCategoryFilter;
+            });
         }
 
         if (filteredProducts.length === 0) {

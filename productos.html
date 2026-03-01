@@ -191,6 +191,41 @@
             color: var(--text-muted);
         }
 
+        /* Estilos para el Filter Bar */
+        .filter-scroller {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 5px 20px 15px 20px;
+            margin-bottom: 5px;
+            display: flex;
+            gap: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-scroller::-webkit-scrollbar {
+            display: none; /* Ocultar barra en móviles */
+        }
+
+        .filter-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .filter-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
     </style>
 </head>
 <body>
@@ -208,6 +243,10 @@
     </header>
 
     <main class="app-main">
+        <div class="filter-scroller" id="categoryFilters">
+            <!-- Pildoras insertadas por JS dinamicamente -->
+        </div>
+
         <div id="productsList" class="products-list">
             <!-- Los productos se cargarán dinámicamente aquí -->
         </div>
@@ -246,6 +285,21 @@
                 <div class="form-group">
                     <label class="form-label">NOMBRE DEL PRODUCTO *</label>
                     <input type="text" id="prodName" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">CATEGORÍA</label>
+                    <input type="text" id="prodCatLabel" class="form-control" list="categoryOpts" placeholder="Ej. Crema, Maquillaje, Hombre..." autocomplete="off">
+                    <datalist id="categoryOpts">
+                        <!-- Llenado dinámicamente o predefinido -->
+                        <option value="Crema">
+                        <option value="Maquillaje">
+                        <option value="Labios">
+                        <option value="Hombre">
+                        <option value="Limpieza Facial">
+                        <option value="Perfume">
+                        <option value="Aseo Personal">
+                    </datalist>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">

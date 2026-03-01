@@ -2,7 +2,7 @@
  * Main App Script - FarmApp
  */
 
-window.APP_VERSION = "v1.01.02";
+window.APP_VERSION = "v1.01.03";
 
 const AppUtil = {
     showToast(message, type = 'success') {
