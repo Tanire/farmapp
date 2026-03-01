@@ -56,6 +56,15 @@ class ProductsModule {
             if (e.target === this.modal) this.closeModal();
         });
 
+        // Eventos del Modal de Detalles (Escaparate)
+        this.detailsModal = document.getElementById('productDetailsModal');
+        document.getElementById('closeDetailsBtn').addEventListener('click', () => {
+             this.detailsModal.classList.remove('active');
+        });
+        this.detailsModal.addEventListener('click', (e) => {
+            if (e.target === this.detailsModal) this.detailsModal.classList.remove('active');
+        });
+
         // Manejo de imagen y compresión base64
         this.imgInput.addEventListener('change', (e) => this.handleImageUpload(e));
 
@@ -103,6 +112,10 @@ class ProductsModule {
             document.getElementById('prodCat').value = prodData.precioCatalogo || '';
             document.getElementById('prodFi').value = prodData.precioFi || '';
             document.getElementById('prodDesc').value = prodData.descuento || '';
+            
+            document.getElementById('prodDescText').value = prodData.description || '';
+            document.getElementById('prodComp').value = prodData.componentes || '';
+            
             document.getElementById('prodPromo').value = prodData.precioClientePromo || '';
             document.getElementById('prodPromoPts').value = prodData.precioFiPromoPuntos || '';
             document.getElementById('prodStock').value = prodData.stock !== undefined ? prodData.stock : 0;
@@ -127,6 +140,38 @@ class ProductsModule {
 
     closeModal() {
         this.modal.classList.remove('active');
+    }
+
+    openDetailsModal(prod) {
+        document.getElementById('detailName').textContent = prod.name || '';
+        document.getElementById('detailClave').textContent = prod.clave || 'S/C';
+        
+        // Formato de Escaparate. Si hay descuento promo lo mostramos, si no precio normal
+        const priceToDisplay = (prod.precioClientePromo > 0) ? prod.precioClientePromo : (prod.precioCatalogo || prod.salePrice);
+        document.getElementById('detailPrice').textContent = AppUtil.formatCurrency(priceToDisplay);
+        
+        const imgSrc = prod.image ? prod.image : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%2394A3B8'><path d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/></svg>";
+        document.getElementById('detailImg').src = imgSrc;
+
+        const descBlock = document.getElementById('detailDescriptionBlock');
+        const descText = document.getElementById('detailDescription');
+        if (prod.description && prod.description.trim() !== '') {
+            descText.textContent = prod.description;
+            descBlock.style.display = 'block';
+        } else {
+            descBlock.style.display = 'none';
+        }
+
+        const compBlock = document.getElementById('detailComponentsBlock');
+        const compText = document.getElementById('detailComponents');
+        if (prod.componentes && prod.componentes.trim() !== '') {
+            compText.textContent = prod.componentes;
+            compBlock.style.display = 'block';
+        } else {
+            compBlock.style.display = 'none';
+        }
+
+        this.detailsModal.classList.add('active');
     }
 
     // Comprimir y convertir imagen a Base64
@@ -191,6 +236,9 @@ class ProductsModule {
         const precioClientePromo = parseFloat(document.getElementById('prodPromo').value) || 0;
         const precioFiPromoPuntos = parseFloat(document.getElementById('prodPromoPts').value) || 0;
         const stock = parseInt(document.getElementById('prodStock').value) || 0;
+        
+        const description = document.getElementById('prodDescText').value.trim();
+        const componentes = document.getElementById('prodComp').value.trim();
 
         // -- VALIDACION: CLAVE UNICA -- 
         // Si hay clave, comprobar que no esté pillada por otro ID distinto
@@ -224,7 +272,8 @@ class ProductsModule {
             precioClientePromo,
             precioFiPromoPuntos,
             stock,
-            description: '',
+            description: description,
+            componentes: componentes,
             costPrice: 0, // deprecado pero conservado por seguridad
             salePrice: precioCatalogo, // Mantener compatibilidad con ventas si es necesario
             image: finalImage,
@@ -285,10 +334,10 @@ class ProductsModule {
             const imgSrc = prod.image ? prod.image : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%2394A3B8'><path d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/></svg>";
 
             card.innerHTML = `
-                <img src="${imgSrc}" class="product-img" alt="${safeName}">
+                <img src="${imgSrc}" class="product-img" alt="${safeName}" style="cursor: pointer;">
                 <div class="product-info" style="width: 100%;">
                     <div style="display:flex; justify-content: space-between; align-items:flex-start;">
-                        <span class="product-title">${safeName}</span>
+                        <span class="product-title clickable-title" style="cursor: pointer;">${safeName}</span>
                         <span style="font-size: 0.7rem; color: var(--text-muted); background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">${safeClave}</span>
                     </div>
                     
@@ -326,6 +375,10 @@ class ProductsModule {
                 const editBtn = card.querySelector('.edit-btn');
                 if (editBtn) editBtn.addEventListener('click', () => this.openModal(prod));
             }
+
+            // Vista Escaparate
+            card.querySelector('.product-img').addEventListener('click', () => this.openDetailsModal(prod));
+            card.querySelector('.clickable-title').addEventListener('click', () => this.openDetailsModal(prod));
 
             this.listEl.appendChild(card);
         });

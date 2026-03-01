@@ -264,6 +264,16 @@
                     <input type="text" id="prodDesc" class="form-control" placeholder="Ej. 15">
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label">Descripción Breve / Funciones</label>
+                    <textarea id="prodDescText" class="form-control" rows="3" placeholder="Ej. Crema hidratante antiedad..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ingredientes / Componentes Destacados</label>
+                    <textarea id="prodComp" class="form-control" rows="2" placeholder="Ej. Vitamina C, Ácido Hialurónico..."></textarea>
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label class="form-label">Cliente Promo</label>
@@ -280,6 +290,40 @@
         </div>
     </div>
 
+    <!-- Modal Detalles de Producto (Escaparate Interactivo) -->
+    <div id="productDetailsModal" class="modal-overlay">
+        <div class="modal-content" style="padding: 0; overflow: hidden; max-height: 95vh; display: flex; flex-direction: column;">
+            <div style="position: relative; width: 100%; height: 280px; background: var(--bg-input); display: flex; justify-content: center; align-items: center;">
+                <img id="detailImg" src="" style="width: 100%; height: 100%; object-fit: contain; padding: 10px;">
+                <button id="closeDetailsBtn" class="icon-btn" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%;">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div style="padding: 25px 20px; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div style="padding-right: 15px;">
+                        <h2 id="detailName" style="font-size: 1.5rem; margin-bottom: 8px; color: var(--text-main); line-height: 1.2;"></h2>
+                        <span id="detailClave" style="font-size: 0.8rem; background: var(--bg-input); padding: 4px 8px; border-radius: 4px; color: var(--text-muted);"></span>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Precio</span>
+                        <h3 id="detailPrice" style="font-size: 1.6rem; color: var(--primary-light); margin: 0;"></h3>
+                    </div>
+                </div>
+                
+                <div id="detailDescriptionBlock" style="margin-top: 25px;">
+                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Sobre este producto</h4>
+                    <p id="detailDescription" style="font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.85); white-space: pre-wrap;"></p>
+                </div>
+
+                <div id="detailComponentsBlock" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Ingredientes Clave</h4>
+                    <p id="detailComponents" style="font-size: 0.9rem; line-height: 1.5; color: var(--secondary); font-style: italic;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Action Button -->
     <button id="btnNewProduct" class="fab-button" aria-label="Añadir Producto">
         <span class="material-icons-round" style="font-size: 30px;">add</span>
@@ -287,21 +331,21 @@
 
     <!-- Navegación Inferior -->
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <span class="material-icons-round">dashboard</span>
-            <span>Inicio</span>
+        <a href="ventas.html" class="nav-item">
+            <span class="material-icons-round">add_shopping_cart</span>
+            <span>Vender</span>
         </a>
         <a href="productos.html" class="nav-item active">
             <span class="material-icons-round">inventory_2</span>
             <span>Productos</span>
         </a>
-        <a href="ventas.html" class="nav-item">
-            <span class="material-icons-round">receipt_long</span>
-            <span>Ventas</span>
+        <a href="index.html" class="nav-item">
+            <span class="material-icons-round">person</span>
+            <span>Mi Zona</span>
         </a>
-        <a href="clientes.html" class="nav-item">
-            <span class="material-icons-round">people</span>
-            <span>Clientes</span>
+        <a href="ajustes.html" class="nav-item">
+            <span class="material-icons-round">settings</span>
+            <span>Ajustes</span>
         </a>
     </nav>
 

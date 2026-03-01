@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ventas - FarmApp</title>
+    <title>Mis Pedidos - FarmApp</title>
     
     <meta name="theme-color" content="#0F172A">
     <link rel="manifest" href="manifest.json">
@@ -13,42 +13,36 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
     <style>
-        .sale-card {
+        .purchase-card {
             background: var(--bg-card);
             border-radius: var(--radius-md);
             padding: 15px;
             margin-bottom: 12px;
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(59, 130, 246, 0.15); /* Azul para compras */
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .sale-info {
+        .purchase-info {
             display: flex;
             flex-direction: column;
             gap: 4px;
             flex-grow: 1;
         }
 
-        .sale-date {
+        .purchase-date {
             font-size: 0.75rem;
             color: var(--text-muted);
         }
-        
-        .sale-client {
-            font-weight: 600;
-            font-size: 1rem;
+
+        .purchase-items {
+            font-size: 0.8rem;
             color: var(--text-main);
         }
 
-        .sale-items {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .sale-amount {
+        .purchase-amount {
             text-align: right;
             min-width: 80px;
         }
@@ -56,19 +50,8 @@
         .amount-val {
             font-weight: 700;
             font-size: 1.1rem;
+            color: var(--danger); /* Dinero que gastamos nosotros */
         }
-
-        .status-badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-            display: inline-block;
-            margin-top: 4px;
-        }
-
-        .status-paid { background: rgba(16, 185, 129, 0.15); color: var(--secondary); }
-        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent); }
 
         .fab-button {
             position: fixed;
@@ -77,7 +60,7 @@
             width: 56px;
             height: 56px;
             border-radius: var(--radius-full);
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, #3b82f6, #60a5fa); /* Botón azul brillante */
             color: white;
             display: flex;
             align-items: center;
@@ -86,9 +69,14 @@
             border: none;
             cursor: pointer;
             z-index: 1000;
+            transition: transform 0.2s;
         }
 
-        /* Modal Full Screen para nueva venta */
+        .fab-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal Full Screen para nueva compra */
         .modal-fullscreen {
             position: fixed;
             top: 0;
@@ -146,7 +134,7 @@
         }
         
         .cart-item-name { font-weight: 600; font-size: 0.95rem; }
-        .cart-item-price { font-size: 0.8rem; color: var(--text-muted); }
+        .cart-item-price { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 3px; }
 
         .cart-item-controls {
             display: flex;
@@ -176,127 +164,99 @@
 </head>
 <body>
     <header class="app-header">
-        <div class="header-content">
-            <img src="https://content.farmasi.com/js/ES-20260225134849-3cb46266-6e1a-49d0-a00e-e0e7539ada9d/_next/static/media/logoText.f15a2acb.svg" alt="Farmasi Logo" style="height: 22px; filter: brightness(0) invert(1);">
+        <div class="header-content" style="justify-content: flex-start; gap: 15px;">
+            <a href="index.html" class="icon-btn" aria-label="Volver">
+                <span class="material-icons-round">arrow_back</span>
+            </a>
+            <h1 style="font-size: 1.1rem; margin: 0; font-weight: 600;">Mis Pedidos de Stock</h1>
         </div>
     </header>
 
-    <main class="app-main">
-        <div id="salesList">
-            <!-- Ventas dinámicas -->
+    <main class="app-main" style="padding-bottom: 100px;">
+        <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">
+                Registra aquí las compras de catálogo a Farmasi. Al confirmar un pedido, sus artículos se sumarán automáticamente a tu pestaña local de <b>Productos (Stock)</b>.
+            </p>
+        </div>
+
+        <h2 class="section-title">Historial de Compras</h2>
+        <div id="purchasesList">
+            <!-- Compras dinámicas -->
         </div>
     </main>
 
-    <!-- Modal Nueva Venta (Pantalla Completa) -->
-    <div id="newSaleModal" class="modal-fullscreen">
+    <!-- Modal Nueva Compra (Pantalla Completa) -->
+    <div id="newPurchaseModal" class="modal-fullscreen">
         <div class="modal-fs-header">
-            <button id="closeSaleBtn" class="icon-btn" style="margin-left:-10px;">
+            <button id="closePurchaseBtn" class="icon-btn" style="margin-left:-10px;">
                 <span class="material-icons-round">arrow_back</span>
             </button>
-            <h2 style="font-size: 1.2rem; flex-grow: 1;">Nueva Venta</h2>
+            <h2 style="font-size: 1.2rem; flex-grow: 1;">Pedido a Central</h2>
         </div>
 
         <div class="modal-fs-body">
-            <!-- Paso 1: Cliente -->
-            <div class="form-group">
-                <label class="form-label">Cliente</label>
-                <select id="saleClient" class="form-control" style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22%2394A3B8%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: 50%;">
-                    <option value="" disabled selected>Selecciona un cliente...</option>
-                </select>
-            </div>
 
-            <!-- Paso 2: Productos -->
-            <div class="form-group" style="margin-top: 25px;">
+            <!-- Paso 1: Productos -->
+            <div class="form-group" style="margin-top: 5px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label class="form-label" style="margin: 0;">Añadir Artículo</label>
+                    <label class="form-label" style="margin: 0;">Añadir Artículo al Pedido</label>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <select id="saleProduct" class="form-control" style="flex-grow: 1; appearance: none;">
+                    <select id="purchaseProduct" class="form-control" style="flex-grow: 1; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22%2394A3B8%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 95%; background-position-y: 50%;">
                         <option value="" disabled selected>Elegir producto...</option>
                     </select>
-                    <button id="btnAddProduct" class="btn btn-primary" style="padding: 12px;">
+                    <button id="btnAddProduct" class="btn" style="padding: 12px; background: #3b82f6; border: none;">
                         <span class="material-icons-round">add</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Paso 3: Carrito -->
+            <!-- Paso 2: Carrito de Compra -->
             <div style="margin-top: 30px;">
-                <h3 class="section-title">Carrito Actual</h3>
+                <h3 class="section-title">Añadidos para Sumar al Inventario</h3>
                 <div id="cartItems">
                     <!-- Articulos del carrito -->
                     <div class="text-muted" style="text-align:center; padding: 20px; font-size: 0.9rem;" id="cartEmptyMsg">
-                        No hay artículos en el carrito
+                        No hay artículos en tu pedido.
                     </div>
                 </div>
             </div>
-            
-            <div class="form-group" style="margin-top: 30px; display: flex; align-items: center; gap: 10px;">
-                 <label class="form-label" style="margin:0; flex-grow:1;">¿Estará cobrado al guardar?</label>
-                 <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                    <input type="checkbox" id="saleIsPaid" style="opacity: 0; width: 0; height: 0;" checked>
-                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--secondary); transition: .4s; border-radius: 34px;" id="toggleBg">
-                        <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 26px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;" id="toggleCircle"></span>
-                    </span>
-                </label>
-            </div>
+
         </div>
 
         <div class="modal-fs-footer">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <span class="text-muted">Total Venta:</span>
+                <span class="text-muted">Total a Pagar en FI (Catálogo):</span>
                 <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);" id="cartTotalVal">0.00 €</span>
             </div>
-            <button id="btnSaveSale" class="btn btn-primary" style="width: 100%; height: 50px; font-size: 1.1rem;">
-                <span class="material-icons-round">done_all</span> Registrar Venta
+            <button id="btnSavePurchase" class="btn" style="width: 100%; height: 50px; font-size: 1.1rem; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none;">
+                <span class="material-icons-round">unarchive</span> Sumar al Stock e Historial
             </button>
         </div>
     </div>
 
-    <!-- Detalles de Venta ya realizada -->
-    <div id="saleDetailModal" class="modal-overlay">
+    <!-- Detalles de Compra ya realizada -->
+    <div id="purchaseDetailModal" class="modal-overlay">
         <div class="modal-content">
              <div class="modal-header">
-                <h2 id="sdTitle">Detalle Venta</h2>
+                <h2 id="pdTitle">Detalle Pedido</h2>
                 <button id="closeDetailBtn" class="icon-btn">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
-            <div id="sdContent" style="margin-bottom: 20px; line-height:1.6;"></div>
-            <button id="btnTogglePaid" class="btn" style="width: 100%; margin-top: 10px; background: var(--bg-input); color: var(--text-main);">
-               Cambiar Estado (Cobrado/Pendiente)
-            </button>
+            <div id="pdContent" style="margin-bottom: 20px; line-height:1.6;"></div>
         </div>
     </div>
 
 
-    <button id="btnNewSale" class="fab-button" aria-label="Añadir Venta">
-        <span class="material-icons-round" style="font-size: 30px;">add_shopping_cart</span>
+    <button id="btnNewPurchase" class="fab-button" aria-label="Añadir Venta">
+        <span class="material-icons-round" style="font-size: 30px;">local_shipping</span>
     </button>
-
-    <nav class="bottom-nav">
-        <a href="ventas.html" class="nav-item active">
-            <span class="material-icons-round">add_shopping_cart</span>
-            <span>Vender</span>
-        </a>
-        <a href="productos.html" class="nav-item">
-            <span class="material-icons-round">inventory_2</span>
-            <span>Productos</span>
-        </a>
-        <a href="index.html" class="nav-item">
-            <span class="material-icons-round">person</span>
-            <span>Mi Zona</span>
-        </a>
-        <a href="ajustes.html" class="nav-item">
-            <span class="material-icons-round">settings</span>
-            <span>Ajustes</span>
-        </a>
-    </nav>
 
     <div id="toast" class="toast"></div>
 
     <script src="js/storage.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/ventas.js"></script>
+    <script src="js/compras.js"></script>
 </body>
 </html>
