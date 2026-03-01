@@ -11,11 +11,33 @@ class ProductsModule {
         this.imgPreview = document.getElementById('imgPreview');
         this.searchInput = document.getElementById('searchProduct');
         
+        // Modalidad Cliente
+        this.isClientMode = localStorage.getItem('farmapp_app_mode') === 'cliente';
+        
         // Data en vivo
         this.editingBase64Image = null;
 
+        this.applySecurityUI();
         this.bindEvents();
         this.renderList();
+    }
+
+    applySecurityUI() {
+        if (this.isClientMode) {
+             // Ocultar Nav y FAB
+             const nav = document.querySelector('.bottom-nav');
+             if (nav) nav.style.display = 'none';
+             
+             const fab = document.getElementById('btnNewProduct');
+             if (fab) fab.style.display = 'none';
+             
+             // Mostrar botón de Escape (Candado)
+             const exitBtn = document.getElementById('btnExitClientMode');
+             if (exitBtn) exitBtn.style.display = 'block';
+             
+             // Compensar Padding para que la lista ocupe toda la pantalla al no haber Nav
+             document.body.style.paddingBottom = '0';
+        }
     }
 
     bindEvents() {
@@ -44,6 +66,20 @@ class ProductsModule {
         if (this.searchInput) {
             this.searchInput.addEventListener('input', (e) => {
                 this.renderList(e.target.value);
+            });
+        }
+
+        // Salir Modo Cliente
+        const exitBtn = document.getElementById('btnExitClientMode');
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                const pass = prompt("Introduce el nombre del Vendedor para salir del Modo Escaparate:");
+                if (pass && pass.toLowerCase() === (localStorage.getItem('farmapp_seller_name') || '').toLowerCase()) {
+                    localStorage.removeItem('farmapp_app_mode');
+                    window.location.reload(true);
+                } else if (pass !== null) {
+                    AppUtil.showToast("Nombre incorrecto. Seguirás en Modo Cliente.", "error");
+                }
             });
         }
     }
@@ -233,27 +269,40 @@ class ProductsModule {
                         <span style="font-size: 0.7rem; color: var(--text-muted); background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">${safeClave}</span>
                     </div>
                     
+                    ${this.isClientMode ? '' : `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 5px; font-size: 0.75rem;">
                         <div style="color: var(--text-muted);">Catálogo: <strong style="color: var(--text-main);">${AppUtil.formatCurrency(prod.precioCatalogo || prod.salePrice)}</strong></div>
                         <div style="color: var(--text-muted);">P. FI: <strong style="color: var(--secondary-light);">${AppUtil.formatCurrency(prod.precioFi || 0)}</strong></div>
-                        
                         <div style="color: var(--text-muted);">Promo: <strong style="color: var(--accent);">${AppUtil.formatCurrency(prod.precioClientePromo || 0)}</strong></div>
                         <div style="color: var(--text-muted);">Promo FI: <strong style="color: var(--accent);">${AppUtil.formatCurrency(prod.precioFiPromoPuntos || 0)}</strong></div>
                     </div>
+                    `}
+                    
+                    ${this.isClientMode && (prod.precioCatalogo || prod.precioClientePromo) ? `
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Precio Catálogo: <strong style="color: var(--text-main);">${AppUtil.formatCurrency(prod.precioCatalogo || prod.salePrice)}</strong></div>
+                        ${prod.precioClientePromo ? `<div style="font-size: 0.85rem; color: var(--accent);">Promo: <strong>${AppUtil.formatCurrency(prod.precioClientePromo)}</strong></div>` : ''}
+                    </div>
+                    ` : ''}
                     
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size: 0.8rem;">
                         ${prod.descuento ? `<div style="color: var(--primary-light);">Desc: <strong>${prod.descuento.toString().includes('%') ? prod.descuento : prod.descuento + '%'}</strong></div>` : '<div></div>'}
-                        <div style="background: ${prod.stock <= 0 ? 'var(--danger)' : 'var(--bg-main)'}; color: ${prod.stock <= 0 ? 'white' : 'var(--text-main)'}; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Stock: ${prod.stock || 0}</div>
+                        ${this.isClientMode ? '' : `<div style="background: ${prod.stock <= 0 ? 'var(--danger)' : 'var(--bg-main)'}; color: ${prod.stock <= 0 ? 'white' : 'var(--text-main)'}; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Stock: ${prod.stock || 0}</div>`}
                     </div>
                 </div>
+                
+                ${this.isClientMode ? '' : `
                 <button class="icon-btn edit-btn" style="color: var(--primary-light);">
                     <span class="material-icons-round">edit</span>
                 </button>
+                `}
             `;
 
             // Edición
-            const editBtn = card.querySelector('.edit-btn');
-            editBtn.addEventListener('click', () => this.openModal(prod));
+            if (!this.isClientMode) {
+                const editBtn = card.querySelector('.edit-btn');
+                if (editBtn) editBtn.addEventListener('click', () => this.openModal(prod));
+            }
 
             this.listEl.appendChild(card);
         });

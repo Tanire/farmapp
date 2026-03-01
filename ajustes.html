@@ -105,7 +105,21 @@
                 </div>
             </details>
 
-            <!-- Importación de Catálogo (NUEVO) -->
+            <!-- Modo de Vista (NUEVO) -->
+            <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px; border-left: 4px solid var(--secondary);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span class="material-icons-round" style="color: var(--secondary); font-size: 28px;">visibility</span>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">Modo Escaparate</h3>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">
+                    Activa el <b>Modo Cliente</b> para prestarle el dispositivo a un cliente. Se bloquearán las pestañas de Ventas, Clientes y Ajustes. En Productos se ocultará el margen de beneficio y precios de costo.
+                </p>
+                <button type="button" id="btnActivateClientMode" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); border: none; font-weight: bold; color: white;">
+                    <span class="material-icons-round">storefront</span> Activar Modo Cliente
+                </button>
+            </div>
+
+            <!-- Importación de Catálogo -->
             <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px;">
                 <h3 class="section-title" style="color: var(--primary-light); margin-top: 0;">Importar Productos</h3>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4;">

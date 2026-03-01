@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const localAppVersionDisplay = document.getElementById('localAppVersion');
     const cloudAppVersionDisplay = document.getElementById('cloudAppVersion');
     const btnForceUpdate = document.getElementById('btnForceUpdate');
-    const CURRENT_LOCAL_VERSION = "v1.00.24"; // VARIABLE VIVA DE ACTUALIZACION DE APP
+    const CURRENT_LOCAL_VERSION = "v1.00.25"; // VARIABLE VIVA DE ACTUALIZACION DE APP
 
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
@@ -220,6 +220,18 @@ document.addEventListener('DOMContentLoaded', () => {
             AppUtil.showToast('Excepción al crear Gist.', 'error');
         }
     });
+
+    // ---- MODO CLIENTE ----
+    const btnActivateClientMode = document.getElementById('btnActivateClientMode');
+    if (btnActivateClientMode) {
+        btnActivateClientMode.addEventListener('click', () => {
+            const cnf = confirm("¿Activar Modo Cliente? El dispositivo entrará en modo Escaparate restringido y solo mostrará el catálogo de venta. Para salir, deberás pulsar el candado en la vista de Productos.");
+            if (cnf) {
+                localStorage.setItem('farmapp_app_mode', 'cliente');
+                window.location.replace('productos.html');
+            }
+        });
+    }
 
     // ---- IMPORTADOR CSV ----
     if (btnImportCSV && csvFileInput) {

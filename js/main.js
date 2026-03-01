@@ -30,6 +30,7 @@ const AppUtil = {
 
 class DashboardApp {
     constructor() {
+        this.checkAppMode();
         this.initPWA();
         this.bindEvents();
         
@@ -43,6 +44,16 @@ class DashboardApp {
         
         // Auto-sincronización silenciosa al abrir la app
         this.autoSync();
+    }
+
+    checkAppMode() {
+        const mode = localStorage.getItem('farmapp_app_mode');
+        if (mode === 'cliente') {
+            // Si no estamos en la página permitida, echar patadas
+            if (!window.location.pathname.endsWith('productos.html')) {
+                window.location.replace('productos.html');
+            }
+        }
     }
 
     initPWA() {
