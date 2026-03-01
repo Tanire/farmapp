@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const localAppVersionDisplay = document.getElementById('localAppVersion');
     const cloudAppVersionDisplay = document.getElementById('cloudAppVersion');
     const btnForceUpdate = document.getElementById('btnForceUpdate');
-    const CURRENT_LOCAL_VERSION = "v1.01.01"; // VARIABLE VIVA DE ACTUALIZACION DE APP
+    const CURRENT_LOCAL_VERSION = "v1.01.02"; // VARIABLE VIVA DE ACTUALIZACION DE APP
 
     // Cargar datos actuales
     sellerNameInput.value = localStorage.getItem('farmapp_seller_name') || '';
